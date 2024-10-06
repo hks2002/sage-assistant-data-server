@@ -40,4 +40,26 @@
 	   AND (log.log_at BETWEEN STR_TO_DATE(#{DateFrom},'%Y-%m-%d') AND STR_TO_DATE(#{DateTo},'%Y-%m-%d')  )
 	ORDER BY log_at DESC
     </select>
+	<select id="findUserLogs" resultType="com.da.sageassistantserver.model.LogRaw">
+	SELECT 
+	  log.v0,
+	  log.v1,
+	  log.v2,
+	  log.v3,
+		log.v4,
+		log.v5,
+		log.v6,
+		log.v7,
+		log.v8,
+		log.v9,
+	  log.log_at 
+	FROM log
+	LEFT JOIN log_template
+	     ON log.template_id = log_template.id
+	WHERE 
+	  log_template.template_code = #{TCode}
+	  AND log.v0 = #{User}
+	ORDER BY log.log_at DESC 
+	LIMIT #{Limit} OFFSET #{Offset}
+	</select>
 </mapper>

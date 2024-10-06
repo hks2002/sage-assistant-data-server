@@ -24,10 +24,22 @@ public class imageTest {
     String tifPath = "c:\\var\\test.tif";
     String tifPdfPath = "c:\\test.tif";
     try {
-      ImageTools.addTextFull((new FileInputStream(pngPath)).readAllBytes(), "png", new FileOutputStream(pngPdfPath),
-                             "test", 0.5f, 30);
-      ImageTools.addTextFull((new FileInputStream(tifPath)).readAllBytes(), "tif", new FileOutputStream(tifPdfPath),
-                             "test", 0.5f, 30);
+      ImageTools.addTextFull(
+        (new FileInputStream(pngPath)).readAllBytes(),
+        "png",
+        new FileOutputStream(pngPdfPath),
+        "test",
+        0.5f,
+        30
+      );
+      ImageTools.addTextFull(
+        (new FileInputStream(tifPath)).readAllBytes(),
+        "tif",
+        new FileOutputStream(tifPdfPath),
+        "test",
+        0.5f,
+        30
+      );
     } catch (Exception e) {
       e.printStackTrace();
     }

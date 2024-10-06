@@ -1,29 +1,28 @@
-/******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2024-06-02 21:34:24                               *
- * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-15 11:08:57                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
- *****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2024-06-02 21:34:24                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:49:40                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
-
-import java.sql.Timestamp;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.da.sageassistantserver.dao.UserMapper;
 import com.da.sageassistantserver.model.User;
-import com.da.sageassistantserver.utils.SageActionHelper;
-import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
+import com.da.sageassistantserver.utils.ResponseJsonHelper;
+import com.da.sageassistantserver.utils.ResponseJsonHelper.MsgTyp;
 import com.da.sageassistantserver.utils.Utils;
+import java.sql.Timestamp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+
   @Autowired
   UserMapper userMapper;
 
@@ -42,8 +41,9 @@ public class UserService {
     user.setCreate_by(0L);
     user.setUpdate_by(0L);
 
-    return userMapper.insert(user) == 0 ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User create failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+    return userMapper.insert(user) == 0
+      ? ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "User create failed.")
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   /**
@@ -58,8 +58,14 @@ public class UserService {
    * @param language   the preferred language of the user
    * @return a JSON object representing the result of creating the user
    */
-  public JSONObject createUser(String sage_id, String login_name, String first_name, String last_name, String email,
-      String language) {
+  public JSONObject createUser(
+    String sage_id,
+    String login_name,
+    String first_name,
+    String last_name,
+    String email,
+    String language
+  ) {
     User user = new User();
     user.setSage_id(sage_id);
     user.setLogin_name(login_name);
@@ -78,8 +84,9 @@ public class UserService {
    * @return a JSONObject indicating the success or failure of the deletion
    */
   public JSONObject deleteUserById(Long uid) {
-    return userMapper.deleteById(uid) == 0 ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User delete failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+    return userMapper.deleteById(uid) == 0
+      ? ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "User delete failed.")
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   /**
@@ -93,8 +100,9 @@ public class UserService {
     LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(User::getSage_id, sid);
 
-    return userMapper.delete(queryWrapper) == 0 ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User delete failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+    return userMapper.delete(queryWrapper) == 0
+      ? ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "User delete failed.")
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   public User getUserByUid(Long id) {
@@ -116,21 +124,31 @@ public class UserService {
   }
 
   public User getUserByAuth(String auth) {
-    String loginName = Utils.decodeBasicAuth(auth).split(":")[0];
-    return getUserByLoginName(loginName);
+    String[] loginInfo = Utils.decodeBasicAuth(auth).split(":");
+    return (loginInfo.length > 1)
+      ? userMapper.findUserByLoginName(loginInfo[0])
+      : null;
   }
 
-  public JSONObject updateUserByWrapper(User user, LambdaUpdateWrapper<User> wrapper) {
+  public JSONObject updateUserByWrapper(
+    User user,
+    LambdaUpdateWrapper<User> wrapper
+  ) {
     user.setUpdate_at(new Timestamp(System.currentTimeMillis()));
     user.setUpdate_by(0L);
     return userMapper.update(user, wrapper) <= 0
-        ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User update failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+      ? ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "User update failed.")
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
-  public JSONObject updateUserBySid(String sage_id, String login_name, String first_name, String last_name,
-      String email, String language) {
-
+  public JSONObject updateUserBySid(
+    String sage_id,
+    String login_name,
+    String first_name,
+    String last_name,
+    String email,
+    String language
+  ) {
     LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
     updateWrapper.eq(User::getSage_id, sage_id);
 
@@ -143,9 +161,14 @@ public class UserService {
     return updateUserByWrapper(user, updateWrapper);
   }
 
-  public JSONObject updateUserByLoginName(String login_name, String sage_id, String first_name, String last_name,
-      String email, String language) {
-
+  public JSONObject updateUserByLoginName(
+    String login_name,
+    String sage_id,
+    String first_name,
+    String last_name,
+    String email,
+    String language
+  ) {
     LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
     updateWrapper.eq(User::getLogin_name, login_name);
 
@@ -171,7 +194,11 @@ public class UserService {
     User user = getUserByAuth(auth);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when get profile.");
+      return ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User not found when get profile."
+      );
     }
 
     JSONObject profile = new JSONObject();
@@ -183,7 +210,7 @@ public class UserService {
     profile.put("email", user.getEmail());
     profile.put("language", user.getLanguage());
 
-    JSONObject rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+    JSONObject rtn = ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
     rtn.put("profile", profile);
     return rtn;
   }

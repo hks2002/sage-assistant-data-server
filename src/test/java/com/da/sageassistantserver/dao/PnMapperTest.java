@@ -15,46 +15,46 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class PnMapperTest {
 
-    @Autowired
-    PnMapper pnMapper;
+  @Autowired
+  PnMapper pnMapper;
 
-    @Test
-    void testFindAllPnByPnRoot() {
-        pnMapper.findAllPnByPnRoot("956A1001G01");
-    }
+  @Test
+  void testFindAllPnByPnRoot() {
+    pnMapper.findAllPnByPnRoot("956A1001G01");
+  }
 
-    @Test
-    void testFindCostHistoryByPnRoot() {
-        pnMapper.findCostHistoryByPnRoot("956A1001G01");
-    }
+  @Test
+  void testFindCostHistoryByPnRoot() {
+    pnMapper.findCostHistoryByPnRoot("956A1001G01");
+  }
 
-    @Test
-    void testFindDeliveryDurationByPnRoot() {
-        pnMapper.findDeliveryDurationByPnRoot("956A1001G01");
-    }
+  @Test
+  void testFindDeliveryDurationByPnRoot() {
+    pnMapper.findDeliveryDurationByPnRoot("956A1001G01");
+  }
 
-    @Test
-    void testFindObsoletePnBySite() {
-        pnMapper.findObsoletePnBySite("ZHU");
-    }
+  @Test
+  void testFindObsoletePnBySite() {
+    pnMapper.findObsoletePnBySite("ZHU");
+  }
 
-    @Test
-    void testFindOptionPn() {
-        pnMapper.findOptionPn("956A1001G01");
-    }
+  @Test
+  void testFindOptionPn() {
+    pnMapper.findOptionPn("956A1001G01");
+  }
 
-    @Test
-    void testFindPnByLike() {
-        pnMapper.findPnByLike("956A1001G01", 50);
-    }
+  @Test
+  void testFindPnByLike() {
+    pnMapper.findPnByLike("956A1001G01", 50);
+  }
 
-    @Test
-    void testFindQuoteHistoryByPnRoot() {
-        pnMapper.findQuoteHistoryByPnRoot("956A1001G01");
-    }
+  @Test
+  void testFindQuoteHistoryByPnRoot() {
+    pnMapper.findQuoteHistoryByPnRoot("956A1001G01");
+  }
 
-    @Test
-    void testFindSalesHistoryByPnRoot() {
-        pnMapper.findSalesHistoryByPnRoot("956A1001G01");
-    }
+  @Test
+  void testFindSalesHistoryByPnRoot() {
+    pnMapper.findSalesHistoryByPnRoot("956A1001G01");
+  }
 }

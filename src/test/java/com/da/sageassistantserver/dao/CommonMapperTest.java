@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2023-03-12 19:28:43                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-03 22:17:56                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2023-03-12 19:28:43                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:51:08                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
@@ -15,11 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class CommonMapperTest {
 
-    @Autowired
-    CommonMapper commonMapper;
+  @Autowired
+  CommonMapper commonMapper;
 
-    @Test
-    void testGetAllSites() {
-        commonMapper.getAllSites();
-    }
+  @Test
+  void testGetAllSites() {
+    commonMapper.getAllSites();
+  }
 }

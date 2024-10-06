@@ -7,6 +7,8 @@
 	<select id="findPnByLike" resultType="com.da.sageassistantserver.model.PnRootPn">
 		SELECT DISTINCT
 		    ITMMASTER.ITMREF_0 AS PNROOT,
+				ITMMASTER.ITMREF_0 AS PN
+				/*
 		    IIF(ECCSTA.ITMREF_0 IS NULL,
 				ITMMASTER.ITMREF_0,
 				IIF(ECCSTA.ECCVALMAJ_0='#',
@@ -16,7 +18,8 @@
 					    ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0
 				    )
 				)
-			) AS PN
+			  ) AS PN
+				*/
 		FROM ITMMASTER
 		LEFT JOIN ECCSTA
 		     ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0

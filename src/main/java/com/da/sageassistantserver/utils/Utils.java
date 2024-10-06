@@ -1,19 +1,19 @@
-/******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2023-03-10 15:42:04                               *
- * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-21 02:04:04                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
- *****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2023-03-10 15:42:04                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:49:29                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
+import com.alibaba.fastjson2.JSONArray;
+import jakarta.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -30,41 +30,29 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
-
-import org.bouncycastle.util.encoders.Hex;
-
-import com.alibaba.fastjson2.JSONArray;
-
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.encoders.Hex;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 public class Utils {
+
   /* clang-format off */
   public static final String[] IP_HEADERS = {
-      "X-Forwarded-For",
-      "Proxy-Client-IP",
-      "WL-Proxy-Client-IP",
-      "HTTP_X_FORWARDED_FOR",
-      "HTTP_X_FORWARDED",
-      "HTTP_X_CLUSTER_CLIENT_IP",
-      "HTTP_CLIENT_IP",
-      "HTTP_FORWARDED_FOR",
-      "HTTP_FORWARDED",
-      "HTTP_VIA",
-      "REMOTE_ADDR"
-
-      // you can add more matching headers here ...
+    "X-Forwarded-For",
+    "Proxy-Client-IP",
+    "WL-Proxy-Client-IP",
+    "HTTP_X_FORWARDED_FOR",
+    "HTTP_X_FORWARDED",
+    "HTTP_X_CLUSTER_CLIENT_IP",
+    "HTTP_CLIENT_IP",
+    "HTTP_FORWARDED_FOR",
+    "HTTP_FORWARDED",
+    "HTTP_VIA",
+    "REMOTE_ADDR"
+    // you can add more matching headers here ...
   };
-
-  /* clang-format on */
-  public static boolean isNullOrEmpty(String str) {
-    if (str == null || str.isEmpty() || str.isBlank()) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   /**
    * Retrieves the authorization string from the given session if the provided
@@ -76,20 +64,20 @@ public class Utils {
    *         null
    */
   public static String getAuth(String auth, HttpSession session) {
-    if (isNullOrEmpty(auth)) {
+    if (StringUtils.hasText(auth)) {
+      return auth;
+    } else {
       if (session != null && session.getAttribute("authorization") != null) {
         return (String) session.getAttribute("authorization");
       } else {
         return null;
       }
-    } else {
-      return auth;
     }
   }
 
   /**
    * Convert a list of strings to a string separated by semicolons.
-   * 
+   *
    * @param list
    * @return
    */
@@ -118,21 +106,13 @@ public class Utils {
     }
   }
 
-  public static String getFileExt(String filename) {
-    if (isNullOrEmpty(filename)) {
-      return "";
-    }
-    int dot = filename.lastIndexOf('.');
-    if ((dot > -1) && (dot < (filename.length() - 1))) {
-      return filename.substring(dot + 1).toUpperCase();
-    } else {
-      return "";
-    }
-  }
-
   public static Boolean isClientFromZhuhai(String ip) {
-    if (ip.startsWith("192.168.0.") || ip.startsWith("192.168.8.") || ip.startsWith("192.168.13.") ||
-        ip.startsWith("192.168.253.")) {
+    if (
+      ip.startsWith("192.168.0.") ||
+      ip.startsWith("192.168.8.") ||
+      ip.startsWith("192.168.13.") ||
+      ip.startsWith("192.168.253.")
+    ) {
       return true;
     }
     return false;
@@ -147,8 +127,11 @@ public class Utils {
         Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
         while (addresses.hasMoreElements()) {
           InetAddress address = addresses.nextElement();
-          if (!address.isLoopbackAddress() && address.isSiteLocalAddress()
-              && address.getHostAddress().startsWith("192.168.0.")) {
+          if (
+            !address.isLoopbackAddress() &&
+            address.isSiteLocalAddress() &&
+            address.getHostAddress().startsWith("192.168.0.")
+          ) {
             return true;
           }
         }
@@ -197,7 +180,10 @@ public class Utils {
       for (int i = 0; i < filesPaths.length; i++) {
         File file = new File(filesPaths[i]);
 
-        if (!file.getName().startsWith("~") && !file.getName().toLowerCase().equals("thumbs.db")) {
+        if (
+          !file.getName().startsWith("~") &&
+          !file.getName().toLowerCase().equals("thumbs.db")
+        ) {
           fileNames.add(file.getName());
         }
       }
@@ -216,12 +202,16 @@ public class Utils {
   public static String readFileContent(String filename) {
     // Reading files in jar, use getResourceAsStream(filename), here is reading for
     // war distribution
-    String path = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+    String path = Thread
+      .currentThread()
+      .getContextClassLoader()
+      .getResource("")
+      .getPath();
     path += filename;
     log.debug("Resource base path :" + path);
 
     try {
-      InputStream inputStream = new FileInputStream(path);
+      FileInputStream inputStream = new FileInputStream(path);
       String s = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
       inputStream.close();
       return s;
@@ -229,22 +219,18 @@ public class Utils {
       log.info("FileNotFound: " + path + filename);
       return "";
     } catch (IOException e) {
-      log.error("IOException: "
-          + "When reading " + filename);
+      log.error("IOException: " + "When reading " + filename);
       return "";
     }
   }
 
-  public static void saveFileContent(String filename, byte[] content) {
+  public static void saveFileContent(String filename, byte[] bytes) {
     File file = new File(filename);
     try {
       if (!file.getParentFile().exists()) {
         file.getParentFile().mkdirs();
       }
-      FileOutputStream out = new FileOutputStream(file);
-      out.write(content);
-      out.flush();
-      out.close();
+      FileCopyUtils.copy(bytes, file);
     } catch (IOException e) {
       log.error("IOException: " + e.getMessage());
     }
@@ -276,9 +262,13 @@ public class Utils {
    *         desired length
    */
   public static String withRightPadZero(String s, int length) {
+    return withRightPad(s, length, '0');
+  }
+
+  public static String withRightPad(String s, int length, char c) {
     StringBuilder sb = new StringBuilder(s);
     while (sb.length() < length) {
-      sb.append("0");
+      sb.append(c);
     }
     return sb.toString();
   }
@@ -296,8 +286,14 @@ public class Utils {
 
     while (startIndex < str.length()) {
       int endIndex = startIndex + 1;
-      while (endIndex <= str.length() &&
-          str.substring(startIndex, endIndex).getBytes(StandardCharsets.UTF_8).length <= maxBytes) {
+      while (
+        endIndex <= str.length() &&
+        str
+          .substring(startIndex, endIndex)
+          .getBytes(StandardCharsets.UTF_8)
+          .length <=
+        maxBytes
+      ) {
         endIndex++;
       }
 
@@ -315,44 +311,59 @@ public class Utils {
    * @param fileNameNoExt   the file name without the extension
    * @param toSubFolderDeep the depth of sub-folders to create
    * @param toSubFolderLen  the length of each sub-folder
-   * 
+   *
    * @Note Top level is always ne character[0-9A-Z]
    *       and remove "TDS", "OMSD", "GIM" ... from file name
    * @return the generated file path
    */
-  public static String getPathByFileName(String fileNameNoExt, int toSubFolderDeep, int toSubFolderLen) {
+  public static String getPathByFileName(
+    String fileNameNoExt,
+    int toSubFolderDeep,
+    int toSubFolderLen
+  ) {
     // remove "TDS", "OMSD", "GIM" ... from file name, ignore case
     // keep only [A-Za-z0-9] in file name
-    String cleanName = fileNameNoExt.replaceAll("(?i)TDS", "")
-        .replaceAll("(?i)OMSD", "")
-        .replaceAll("(?i)DWG", "")
-        .replaceAll("(?i)REV", "")
-        .replaceAll("(?i)GIM", "")
-        .replaceAll("(?i)NOTICE", "")
-        .replaceAll("(?i)TECHNIQUE", "")
-        .replaceAll("(?i)D'UTILISATIONS", "")
-        .replaceAll("(?i)D'UTILISATION", "")
-        .replaceAll("(?i)D'INSTRUCTIONS", "")
-        .replaceAll("(?i)D'INSTRUCTION", "")
-        .replaceAll("(?i)INSTRUCTIONS", "")
-        .replaceAll("(?i)INSTRUCTION", "")
-        .replaceAll("(?i)INFORMATION", "")
-        .replaceAll("(?i)USER", "")
-        .replaceAll("(?i)GUIDE", "")
-        .replaceAll("(?i)MANUAL", "")
-        .replaceAll("(?i)MANUEL", "")
-        .replaceAll("[^A-Za-z0-9]", "")
-        .toUpperCase();
+    String cleanName = fileNameNoExt
+      .replaceAll("(?i)TDS", "")
+      .replaceAll("(?i)OMSD", "")
+      .replaceAll("(?i)DWG", "")
+      .replaceAll("(?i)REV", "")
+      .replaceAll("(?i)GIM", "")
+      .replaceAll("(?i)NOTICE", "")
+      .replaceAll("(?i)TECHNIQUE", "")
+      .replaceAll("(?i)D'UTILISATIONS", "")
+      .replaceAll("(?i)D'UTILISATION", "")
+      .replaceAll("(?i)D'INSTRUCTIONS", "")
+      .replaceAll("(?i)D'INSTRUCTION", "")
+      .replaceAll("(?i)INSTRUCTIONS", "")
+      .replaceAll("(?i)INSTRUCTION", "")
+      .replaceAll("(?i)INFORMATION", "")
+      .replaceAll("(?i)USER", "")
+      .replaceAll("(?i)GUIDE", "")
+      .replaceAll("(?i)MANUAL", "")
+      .replaceAll("(?i)MANUEL", "")
+      .replaceAll("[^A-Za-z0-9]", "")
+      .toUpperCase();
 
     // get left toSubFolderDeep * toSubFolderLen chars, if less than it, add 0
-    String subFolders = withRightPadZero(cleanName, toSubFolderDeep * toSubFolderLen);
+    String subFolders = withRightPadZero(
+      cleanName,
+      toSubFolderDeep * toSubFolderLen
+    );
     // top level fixed to 0-9 and A-Z
     StringBuilder sb = new StringBuilder(subFolders.substring(0, 1));
     for (int i = 0; i < toSubFolderDeep; i++) {
-      String subFolderName = subFolders.substring(i * toSubFolderLen, (i + 1) * toSubFolderLen);
+      String subFolderName = subFolders.substring(
+        i * toSubFolderLen,
+        (i + 1) * toSubFolderLen
+      );
       // These names are reserved for Windows
-      if (subFolderName.equals("CON") || subFolderName.equals("PRN") || subFolderName.equals("AUX") ||
-          subFolderName.equals("NUL")) {
+      if (
+        subFolderName.equals("CON") ||
+        subFolderName.equals("PRN") ||
+        subFolderName.equals("AUX") ||
+        subFolderName.equals("NUL")
+      ) {
         subFolderName = "000";
       }
       sb.append('/').append(subFolderName);
@@ -364,24 +375,34 @@ public class Utils {
   /**
    * Move files from one directory to another, ignore hidden files
    * <p>
-   * 
+   *
    * @param fromPath        the source directory
    * @param toPath          the destination directory
-   * @param fileNameNoExt   the file name without the extension
    * @param toSubFolderDeep the depth of sub-folders to create
    * @param toSubFolderLen  the length of each sub-folder
-   * 
+   *
    * @Note Top level is always ne character[0-9A-Z]
    *       and remove "TDS", "OMSD", "GIM" ... from file name
    * @Note this method does not update database
    */
-  public static void moveFiles(Path fromPath, Path toPath, int toSubFolderDeep, int toSubFolderLen) {
+  public static void moveFiles(
+    Path fromPath,
+    Path toPath,
+    int toSubFolderDeep,
+    int toSubFolderLen
+  ) {
     if (!fromPath.toFile().isDirectory()) {
-      log.warn("[MoveFiles] Source path is not a directory: {}", fromPath.toString());
+      log.warn(
+        "[MoveFiles] Source path is not a directory: {}",
+        fromPath.toString()
+      );
       return;
     }
     if (!toPath.toFile().isDirectory()) {
-      log.warn("[MoveFiles] Destination path is not a directory: {}", toPath.toString());
+      log.warn(
+        "[MoveFiles] Destination path is not a directory: {}",
+        toPath.toString()
+      );
       return;
     }
 
@@ -392,44 +413,21 @@ public class Utils {
 
     for (File file : files) {
       if (file.isFile()) { // file
-
-        String fileName = file.getName();
-        int dotIndex = fileName.lastIndexOf(".");
-        String fileNameNoExt = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
-
-        // skip hidden files
-        if (fileName.startsWith("~") || fileName.startsWith("$") ||
-            fileName.toLowerCase().equals("thumbs.db")) {
-          file.delete();
-          continue;
-        }
-
-        try {
-          Path toFolder = Paths.get(
-              toPath.toString() + '/' + getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen));
-
-          // make sure toFolder exists
-          Files.createDirectories(toFolder);
-
-          Path toFile = Paths.get(toFolder.toString() + '/' + fileName);
-          Files.move(Paths.get(file.getAbsolutePath()), toFile, StandardCopyOption.REPLACE_EXISTING);
-
-          if (toFile.toFile().exists()) {
-            log.info("[Move] {} to {} success", file.getAbsolutePath(), toFile.toString());
-          } else {
-            log.warn("[Move] {} to {} failed", file.getAbsolutePath(), toFile.toString());
-          }
-
-        } catch (Exception e) {
-          log.error("[Move] {} failed: {}", file.getAbsolutePath(), e.getMessage());
-        }
-
+        moveFile(file, toPath, toSubFolderDeep, toSubFolderLen);
       } else { // directory
         // skip META-INF and WEB-INF folder
-        if (file.getName().equals("META-INF") || file.getName().equals("WEB-INF")) {
+        if (
+          file.getName().equals("META-INF") || file.getName().equals("WEB-INF")
+        ) {
           continue;
         }
-        moveFiles(Paths.get(file.getAbsolutePath()), toPath, toSubFolderDeep, toSubFolderLen);
+
+        moveFiles(
+          Paths.get(file.getAbsolutePath()),
+          toPath,
+          toSubFolderDeep,
+          toSubFolderLen
+        );
 
         if (file.listFiles() == null || file.listFiles().length == 0) {
           if (file.delete()) { // delete original empty folder
@@ -442,22 +440,100 @@ public class Utils {
     }
   }
 
-  /**
-   * Tidy files in one directory，
-   * <p>
-   * ❗️❗️❗️It will remove hidden files，and original files, before run it, please
-   * do a backup of your files❗️❗️❗️
-   * <p>
-   * 
-   * @Note this method does not update database
-   */
-  public static void tidyFiles(File target, int toSubFolderDeep, int toSubFolderLen) {
-    if (!target.isDirectory()) {
-      log.warn("[TidyFiles] Source path is not a directory: {}", target.getAbsolutePath());
+  public static void moveFile(
+    File file,
+    Path toPath,
+    int toSubFolderDeep,
+    int toSubFolderLen
+  ) {
+    if (!toPath.toFile().isDirectory()) {
+      log.warn(
+        "[MoveFiles] Destination path is not a directory: {}",
+        toPath.toString()
+      );
       return;
     }
 
-    File[] files = target.listFiles();
+    if (file.isFile() && file.exists()) { // file
+      String fileName = file.getName();
+      int dotIndex = fileName.lastIndexOf(".");
+      String fileNameNoExt = dotIndex > 0
+        ? fileName.substring(0, dotIndex)
+        : fileName;
+
+      // skip hidden files
+      if (
+        fileName.startsWith("~") ||
+        fileName.startsWith("$") ||
+        fileName.toLowerCase().equals("thumbs.db")
+      ) {
+        // file.delete();
+        return;
+      }
+
+      try {
+        Path toFolder = Paths.get(
+          toPath.toString() +
+          '/' +
+          getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen)
+        );
+
+        // make sure toFolder exists
+        Files.createDirectories(toFolder);
+
+        Path toFile = Paths.get(toFolder.toString() + '/' + fileName);
+        Files.move(
+          Paths.get(file.getAbsolutePath()),
+          toFile,
+          StandardCopyOption.REPLACE_EXISTING
+        );
+
+        if (toFile.toFile().exists()) {
+          log.info(
+            "[Move] {} to {} success",
+            file.getAbsolutePath(),
+            toFile.toString()
+          );
+        } else {
+          log.error(
+            "[Move] {} to {} failed",
+            file.getAbsolutePath(),
+            toFile.toString()
+          );
+        }
+      } catch (Exception e) {
+        log.error(
+          "[Move] {} failed: {}",
+          file.getAbsolutePath(),
+          e.getMessage()
+        );
+      }
+    }
+  }
+
+  /**
+   * Clean up files in one directory，Top level is always be character[0-9A-Z].
+   * <p>
+   * ❗️❗️❗️It will remove hidden files，and original files,  please do a backup of your files, before run it❗️❗️❗️
+   * <p>
+   *
+   * @Note Top level is always be character[0-9A-Z],❗️❗️❗️ please do a backup, if you want to keep some special folder❗️❗️❗️
+   * @Note this method does not update database
+   */
+  public static void cleanUpFiles(
+    File targetFolder,
+    int toSubFolderDeep,
+    int toSubFolderLen
+  ) {
+    if (!targetFolder.isDirectory()) {
+      log.warn(
+        "[cleanUpFiles] Source path is not a directory: {}",
+        targetFolder.getAbsolutePath()
+      );
+      return;
+    }
+
+    File[] files = targetFolder.listFiles();
     if (files == null) {
       return;
     }
@@ -466,17 +542,24 @@ public class Utils {
       if (file.isFile()) { // file
         String fileName = file.getName();
         int dotIndex = fileName.lastIndexOf(".");
-        String fileNameNoExt = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+        String fileNameNoExt = dotIndex > 0
+          ? fileName.substring(0, dotIndex)
+          : fileName;
 
         // skip hidden files
-        if (fileName.startsWith("~") || fileName.startsWith("$") ||
-            fileName.toLowerCase().equals("thumbs.db")) {
+        if (
+          fileName.startsWith("~") ||
+          fileName.startsWith("$") ||
+          fileName.toLowerCase().equals("thumbs.db")
+        ) {
           file.delete();
           continue;
         }
 
         File toFolder = new File(
-            target.getAbsolutePath() + getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen));
+          targetFolder.getAbsolutePath() +
+          getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen)
+        );
         if (!toFolder.exists()) {
           toFolder.mkdirs();
         }
@@ -491,21 +574,24 @@ public class Utils {
             log.info("[Move] {} success", file.getAbsolutePath());
           }
         }
-
       } else { // directory
-        tidyFiles(file, toSubFolderDeep, toSubFolderLen);
+        cleanUpFiles(file, toSubFolderDeep, toSubFolderLen);
       }
     }
   }
 
   public static String decodeBasicAuth(String basicAuth) {
     // if str end with more than one = , remove it
-    byte[] decodedBytes = Base64.getDecoder().decode(basicAuth.replaceFirst("Basic\\s+", ""));
+    byte[] decodedBytes = Base64
+      .getDecoder()
+      .decode(basicAuth.replaceFirst("Basic\\s+", ""));
     return new String(decodedBytes, StandardCharsets.UTF_8);
   }
 
   public static String encodeBasicAuth(String username, String password) {
-    byte[] encodedBytes = Base64.getEncoder().encode((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+    byte[] encodedBytes = Base64
+      .getEncoder()
+      .encode((username + ":" + password).getBytes(StandardCharsets.UTF_8));
     return "Basic " + new String(encodedBytes, StandardCharsets.UTF_8);
   }
 
@@ -559,8 +645,16 @@ public class Utils {
     newPn = newPn.replaceAll("(.*)(DRAFT|QU|NQD|NQ|CPD|PRT)$", "$1");
     log.debug("[makeShortPn03] " + newPn);
     // remove DRAFT|QU|NQ|NQD|CPD|PRT|AF at midst
-    newPn = newPn.replaceAll("(.*)(DRAFT|QU|NQD|NQ|CPD|PRT|AF)([_|-][A-Z|\\d]{1,3})$", "$1$3");
-    newPn = newPn.replaceAll("(.*)(DRAFT|QU|NQD|NQ|CPD|PRT|AF)(-[\\d]{1,3})(.*)", "$1$4");
+    newPn =
+      newPn.replaceAll(
+        "(.*)(DRAFT|QU|NQD|NQ|CPD|PRT|AF)([_|-][A-Z|\\d]{1,3})$",
+        "$1$3"
+      );
+    newPn =
+      newPn.replaceAll(
+        "(.*)(DRAFT|QU|NQD|NQ|CPD|PRT|AF)(-[\\d]{1,3})(.*)",
+        "$1$4"
+      );
     log.debug("[makeShortPn04] " + newPn);
     // remove P01 at tail
     newPn = newPn.replaceAll("(.*)(P\\d{2})$", "$1");
@@ -578,46 +672,87 @@ public class Utils {
     ///////////////////////////////////////////////////////////////////////////////
     // 9[7|8|9][ADFGKSLV] + 8 bit
     // remove -00, _P-00
-    newPn = newPn.replaceAll("^([9][7|8|9][ADFGKSLV])(\\d{8})\\d*(.*)", "$1$2$3");
-    newPn = newPn.replaceAll("^([9][7|8|9][ADFGKSLV])(\\d{8})((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$2$6");
+    newPn =
+      newPn.replaceAll("^([9][7|8|9][ADFGKSLV])(\\d{8})\\d*(.*)", "$1$2$3");
+    newPn =
+      newPn.replaceAll(
+        "^([9][7|8|9][ADFGKSLV])(\\d{8})((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$2$6"
+      );
     log.debug("[makeShortPn09] " + newPn);
 
     // 856A|956A + 4 bit
     // remove -00, _P-00
     newPn = newPn.replaceAll("^(856A|956A)(\\d{4})\\d*(.*)", "$1$2$3");
-    newPn = newPn.replaceAll("^(856A|956A)(\\d{4})((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$2$6");
+    newPn =
+      newPn.replaceAll(
+        "^(856A|956A)(\\d{4})((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$2$6"
+      );
     log.debug("[makeShortPn10] " + newPn);
 
     // 2C|7C|9C|9R|11C + 4 or 5 bit and 2 ?
     // remove -00, _P-00
-    newPn = newPn.replaceAll("^(2C|7C|9C|9R|11C\\d{4,5})(-\\d{1,2})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$6");
+    newPn =
+      newPn.replaceAll(
+        "^(2C|7C|9C|9R|11C\\d{4,5})(-\\d{1,2})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$6"
+      );
     log.debug("[makeShortPn11] " + newPn);
 
-    newPn = newPn.replaceAll("^(RRT\\d{6})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$2$6");
+    newPn =
+      newPn.replaceAll(
+        "^(RRT\\d{6})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$2$6"
+      );
     log.debug("[makeShortPn12] " + newPn);
 
-    newPn = newPn.replaceAll("^(HU\\d{5})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$2$6");
+    newPn =
+      newPn.replaceAll(
+        "^(HU\\d{5})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$2$6"
+      );
     log.debug("[makeShortPn13] " + newPn);
 
-    newPn = newPn.replaceAll("^(330A|332A|350A|365A)(\\d{6})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$2$6");
+    newPn =
+      newPn.replaceAll(
+        "^(330A|332A|350A|365A)(\\d{6})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$2$6"
+      );
     log.debug("[makeShortPn14] " + newPn);
 
-    newPn = newPn.replaceAll("^(94\\d{2}M\\d{2})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$5");
+    newPn =
+      newPn.replaceAll(
+        "^(94\\d{2}M\\d{2})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$5"
+      );
     log.debug("[makeShortPn15] " + newPn);
 
-    newPn = newPn.replaceAll("^(98AMS\\d{6})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$5");
+    newPn =
+      newPn.replaceAll(
+        "^(98AMS\\d{6})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$5"
+      );
     log.debug("[makeShortPn16] " + newPn);
 
-    newPn = newPn.replaceAll("^(98DNSA\\d{5})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$5");
+    newPn =
+      newPn.replaceAll(
+        "^(98DNSA\\d{5})\\d*((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$5"
+      );
     log.debug("[makeShortPn17] " + newPn);
 
-    newPn = newPn.replaceAll("^([A|B|C|F|G|J|K]\\d{5})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$6");
+    newPn =
+      newPn.replaceAll(
+        "^([A|B|C|F|G|J|K]\\d{5})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+        "$1$6"
+      );
     log.debug("[makeShortPn18] " + newPn);
 
     // remove version
     newPn = newPn.replaceAll("(.*)([_|-][A-Z|\\d]{1,3})$", "$1");
 
-    if (Utils.isNullOrEmpty(newPn)) {
+    if (!StringUtils.hasText(newPn)) {
       log.error("[makeShortPn] " + pn);
     }
     return newPn;

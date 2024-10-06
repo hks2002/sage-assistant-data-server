@@ -1,19 +1,12 @@
-/******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2024-06-02 21:34:24                               *
- * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-15 11:12:43                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
- *****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2024-06-02 21:34:24                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-09 19:51:19                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -21,12 +14,18 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.da.sageassistantserver.dao.UserFuncMapper;
 import com.da.sageassistantserver.model.User;
 import com.da.sageassistantserver.model.UserFunc;
-import com.da.sageassistantserver.utils.SageActionHelper;
-import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
+import com.da.sageassistantserver.utils.ResponseJsonHelper;
+import com.da.sageassistantserver.utils.ResponseJsonHelper.MsgTyp;
 import com.da.sageassistantserver.utils.Utils;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserFuncService {
+
   @Autowired
   UserFuncMapper userFuncMapper;
 
@@ -50,9 +49,13 @@ public class UserFuncService {
     userFunc.setUpdate_by(0L);
 
     if (userFuncMapper.insert(userFunc) == 0) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User Func add failed.");
+      return ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User Func add failed."
+      );
     } else {
-      return SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+      return ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
     }
   }
 
@@ -69,12 +72,22 @@ public class UserFuncService {
    * @param enable       the enable status of the user function
    * @return a JSONObject indicating the success or failure of the operation
    */
-  public JSONObject addUserFuncBySid(String sage_id, String func_system, String func_code, String func_name,
-      String func_details, Boolean enable) {
+  public JSONObject addUserFuncBySid(
+    String sage_id,
+    String func_system,
+    String func_code,
+    String func_name,
+    String func_details,
+    Boolean enable
+  ) {
     User user = userService.getUserBySid(sage_id);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when add user func by sid.");
+      return ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User not found when add user func by sid."
+      );
     }
 
     UserFunc userFunc = new UserFunc();
@@ -100,12 +113,22 @@ public class UserFuncService {
    * @param enable       indicates whether the function is enabled or not
    * @return a JSON object indicating the success or failure of the operation
    */
-  public JSONObject addUserFuncByUid(Long id, String func_system, String func_code, String func_name,
-      String func_details, Boolean enable) {
+  public JSONObject addUserFuncByUid(
+    Long id,
+    String func_system,
+    String func_code,
+    String func_name,
+    String func_details,
+    Boolean enable
+  ) {
     User user = userService.getUserByUid(id);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when add user func by uid.");
+      return ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User not found when add user func by uid."
+      );
     }
 
     UserFunc userFunc = new UserFunc();
@@ -129,8 +152,12 @@ public class UserFuncService {
    */
   public JSONObject deleteUserFuncById(Long id) {
     return userFuncMapper.deleteById(id) == 0
-        ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User function delete failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+      ? ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User function delete failed."
+      )
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   public JSONObject deleteUserFuncBySid(String sid) {
@@ -138,8 +165,12 @@ public class UserFuncService {
     queryWrapper.eq(UserFunc::getSage_id, sid);
 
     return userFuncMapper.delete(queryWrapper) == 0
-        ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User function delete failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+      ? ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User function delete failed."
+      )
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   public JSONObject deleteUserFuncByUid(Long uid) {
@@ -147,16 +178,27 @@ public class UserFuncService {
     queryWrapper.eq(UserFunc::getUser_id, uid);
 
     return userFuncMapper.delete(queryWrapper) == 0
-        ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User function delete failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+      ? ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User function delete failed."
+      )
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
-  public JSONObject updateUserFunc(UserFunc updateUserFunc, LambdaUpdateWrapper<UserFunc> updateWrapper) {
+  public JSONObject updateUserFunc(
+    UserFunc updateUserFunc,
+    LambdaUpdateWrapper<UserFunc> updateWrapper
+  ) {
     updateUserFunc.setUpdate_at(new Timestamp(System.currentTimeMillis()));
     updateUserFunc.setUpdate_by(0L);
     return userFuncMapper.update(updateUserFunc, updateWrapper) <= 0
-        ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User function update failed.")
-        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+      ? ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User function update failed."
+      )
+      : ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   public JSONObject updateSageActionsBySid(String sid, String functions) {
@@ -178,7 +220,11 @@ public class UserFuncService {
     User user = userService.getUserByAuth(auth);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when update Sage actions.");
+      return ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User not found when update Sage actions."
+      );
     }
 
     String sid = user.getSage_id();
@@ -187,7 +233,14 @@ public class UserFuncService {
     UserFunc userFunc2 = userFuncMapper.selectOne(queryWrapper2);
 
     if (userFunc2 == null) {
-      return addUserFuncBySid(sid, "SAGE", "ACTIONS", "functions in sage", functions, true);
+      return addUserFuncBySid(
+        sid,
+        "SAGE",
+        "ACTIONS",
+        "functions in sage",
+        functions,
+        true
+      );
     }
 
     return updateSageActionsBySid(sid, functions);
@@ -204,7 +257,11 @@ public class UserFuncService {
     User user = userService.getUserByAuth(auth);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when get Sage actions.");
+      return ResponseJsonHelper.rtnObj(
+        false,
+        MsgTyp.ERROR,
+        "User not found when get Sage actions."
+      );
     }
 
     return getSageActionsBySid(user.getSage_id());
@@ -224,7 +281,7 @@ public class UserFuncService {
       finalFunctions.add(functions[i]);
     }
 
-    JSONObject rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+    JSONObject rtn = ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
     rtn.put("functions", finalFunctions);
     return rtn;
   }
@@ -256,7 +313,6 @@ public class UserFuncService {
     if (userFuncs.size() > 0) {
       return true;
     } else {
-
       UserFunc userFunc = new UserFunc();
 
       userFunc.setUser_id(user.getId());

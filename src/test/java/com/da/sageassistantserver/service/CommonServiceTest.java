@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2023-03-11 16:26:53                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-07 21:25:54                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/*********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                            *
+ * @CreatedDate           : 2023-03-11 16:26:53                                                                      *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
+ * @LastEditDate          : 2024-12-25 14:52:23                                                                      *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
+ ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -17,21 +17,21 @@ import org.springframework.context.annotation.Bean;
 @SpringBootTest
 class CommonServiceTest {
 
-    // Unit Test for Service，sample code
-    @TestConfiguration
-    static class prepare {
+  // Unit Test for Service，sample code
+  @TestConfiguration
+  static class prepare {
 
-        @Bean
-        public CommonService getService() {
-            return new CommonService();
-        }
+    @Bean
+    public CommonService getService() {
+      return new CommonService();
     }
+  }
 
-    @Autowired
-    CommonService commonService;
+  @Autowired
+  CommonService commonService;
 
-    @Test
-    void testAllSites() {
-        commonService.getAllSites();
-    }
+  @Test
+  void testAllSites() {
+    commonService.getAllSites();
+  }
 }

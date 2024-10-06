@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2023-03-15 23:49:52                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-03 16:54:30                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2023-03-15 23:49:52                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:50:47                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,140 +29,152 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ControllerTest {
 
-    @Autowired
-    private WebApplicationContext applicationContext;
+  @Autowired
+  private WebApplicationContext applicationContext;
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Test
-    void testGetAll() {
-        RequestMappingHandlerMapping requestMapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
-        Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = requestMapping.getHandlerMethods();
+  @Test
+  void testGetAll() {
+    RequestMappingHandlerMapping requestMapping = applicationContext.getBean(
+      RequestMappingHandlerMapping.class
+    );
+    Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = requestMapping.getHandlerMethods();
 
-        List<String> testMethodsSkip = new ArrayList<>();
-        testMethodsSkip.add("handleFileUpload");
-        testMethodsSkip.add("handleFileDelete");
-        testMethodsSkip.add("getAttachmentPath");
-        testMethodsSkip.add("getCurrencyRateBatch");
+    List<String> testMethodsSkip = new ArrayList<>();
+    testMethodsSkip.add("handleFileUpload");
+    testMethodsSkip.add("handleFileDelete");
+    testMethodsSkip.add("getAttachmentPath");
+    testMethodsSkip.add("getCurrencyRateBatch");
 
-        Set<RequestMappingInfo> mappingInfo = handlerMethodMap.keySet();
-        for (RequestMappingInfo info : mappingInfo) {
-            HandlerMethod method = handlerMethodMap.get(info);
+    Set<RequestMappingInfo> mappingInfo = handlerMethodMap.keySet();
+    for (RequestMappingInfo info : mappingInfo) {
+      HandlerMethod method = handlerMethodMap.get(info);
 
-            RequestMapping methodAnnotation = method.getMethodAnnotation(RequestMapping.class);
-            MethodParameter[] params = method.getMethodParameters();
-            String funName = method.getMethod().getName();
+      RequestMapping methodAnnotation = method.getMethodAnnotation(
+        RequestMapping.class
+      );
+      MethodParameter[] params = method.getMethodParameters();
+      String funName = method.getMethod().getName();
 
-            // path[] method[]
-            for (int i = 0; methodAnnotation != null && i < methodAnnotation.path().length
-                    && i < methodAnnotation.method().length; i++) {
-                RequestMethod requestMethod = methodAnnotation.method()[0];
-                String requestPath = methodAnnotation.path()[0];
-                log.info(requestMethod + ":" + requestPath);
+      // path[] method[]
+      for (
+        int i = 0;
+        methodAnnotation != null &&
+        i < methodAnnotation.path().length &&
+        i < methodAnnotation.method().length;
+        i++
+      ) {
+        RequestMethod requestMethod = methodAnnotation.method()[0];
+        String requestPath = methodAnnotation.path()[0];
+        log.info(requestMethod + ":" + requestPath);
 
-                // make the request parameters string
-                String reqParamsStr = "";
-                for (MethodParameter param : params) {
-                    if (param.hasParameterAnnotation(RequestParam.class)) {
-                        RequestParam requestParam = param.getParameterAnnotation(RequestParam.class);
+        // make the request parameters string
+        String reqParamsStr = "";
+        for (MethodParameter param : params) {
+          if (param.hasParameterAnnotation(RequestParam.class)) {
+            RequestParam requestParam = param.getParameterAnnotation(
+              RequestParam.class
+            );
 
-                        if (requestParam != null) {
-                            String paramName = requestParam.name();
-                            log.debug(paramName);
-                            switch (paramName) {
-                                case "Site":
-                                    reqParamsStr += paramName + "=" + "ZHU" + "&";
-                                    break;
-                                case "PN":
-                                    reqParamsStr += paramName + "=" + "956A1001G01" + "&";
-                                    break;
-                                case "Pn":
-                                    reqParamsStr += paramName + "=" + "956A1001_A" + "&";
-                                    break;
-                                case "PnRoot":
-                                    reqParamsStr += paramName + "=" + "956A1001G01" + "&";
-                                    break;
-                                case "DateFrom":
-                                    reqParamsStr += paramName + "=" + "2022-01-01" + "&";
-                                    break;
-                                case "DateTo":
-                                    reqParamsStr += paramName + "=" + "2022-01-07" + "&";
-                                    break;
-                                case "Limit":
-                                    reqParamsStr += paramName + "=" + "1" + "&";
-                                    break;
-                                case "LastN":
-                                    reqParamsStr += paramName + "=" + "1" + "&";
-                                    break;
-                                case "Count":
-                                    reqParamsStr += paramName + "=" + "1" + "&";
-                                    break;
-                                case "Target":
-                                    reqParamsStr += paramName + "=" + "NetPrice" + "&";
-                                    break;
-                                case "Currency":
-                                    reqParamsStr += paramName + "=" + "USD" + "&";
-                                    break;
-                                case "Sour":
-                                    reqParamsStr += paramName + "=" + "RMB" + "&";
-                                    break;
-                                case "Dest":
-                                    reqParamsStr += paramName + "=" + "RMB" + "&";
-                                    break;
-                                case "Date":
-                                    reqParamsStr += paramName + "=" + "2022-01-01" + "&";
-                                    break;
-                                case "Year":
-                                    reqParamsStr += paramName + "=" + "2022" + "&";
-                                    break;
-                                case "AccountNO":
-                                    reqParamsStr += paramName + "=" + "1002210" + "&";
-                                    break;
-                                case "CustomerCode":
-                                    reqParamsStr += paramName + "=" + "00870" + "&";
-                                    break;
-                                case "SupplierCode":
-                                    reqParamsStr += paramName + "=" + "00870" + "&";
-                                    break;
-                                case "FaPiao":
-                                    reqParamsStr += paramName + "=" + "NULL" + "&";
-                                case "InvoiceNO":
-                                    reqParamsStr += paramName + "=" + "NULL" + "&";
-                                default:
-                            }
-                        }
-                    }
-                }
-                if (reqParamsStr.length() > 0) {
-                    reqParamsStr = "?" + reqParamsStr.substring(0, reqParamsStr.length() - 1);
-                }
-                log.info(reqParamsStr);
-
-                // Do request
-                switch (requestMethod) {
-                    case GET:
-                        if (!testMethodsSkip.contains(funName)) {
-                            try {
-                                mockMvc
-                                        .perform(MockMvcRequestBuilders.get(requestPath + reqParamsStr))
-                                        .andExpect(MockMvcResultMatchers.status().isOk());
-                            } catch (Exception e) {
-                                log.error(e.getMessage());
-                            }
-                        }
-
-                        break;
-                    default:
-                }
+            if (requestParam != null) {
+              String paramName = requestParam.name();
+              log.debug(paramName);
+              switch (paramName) {
+                case "Site":
+                  reqParamsStr += paramName + "=" + "ZHU" + "&";
+                  break;
+                case "PN":
+                  reqParamsStr += paramName + "=" + "956A1001G01" + "&";
+                  break;
+                case "Pn":
+                  reqParamsStr += paramName + "=" + "956A1001_A" + "&";
+                  break;
+                case "PnRoot":
+                  reqParamsStr += paramName + "=" + "956A1001G01" + "&";
+                  break;
+                case "DateFrom":
+                  reqParamsStr += paramName + "=" + "2022-01-01" + "&";
+                  break;
+                case "DateTo":
+                  reqParamsStr += paramName + "=" + "2022-01-07" + "&";
+                  break;
+                case "Limit":
+                  reqParamsStr += paramName + "=" + "1" + "&";
+                  break;
+                case "LastN":
+                  reqParamsStr += paramName + "=" + "1" + "&";
+                  break;
+                case "Count":
+                  reqParamsStr += paramName + "=" + "1" + "&";
+                  break;
+                case "Target":
+                  reqParamsStr += paramName + "=" + "NetPrice" + "&";
+                  break;
+                case "Currency":
+                  reqParamsStr += paramName + "=" + "USD" + "&";
+                  break;
+                case "Sour":
+                  reqParamsStr += paramName + "=" + "RMB" + "&";
+                  break;
+                case "Dest":
+                  reqParamsStr += paramName + "=" + "RMB" + "&";
+                  break;
+                case "Date":
+                  reqParamsStr += paramName + "=" + "2022-01-01" + "&";
+                  break;
+                case "Year":
+                  reqParamsStr += paramName + "=" + "2022" + "&";
+                  break;
+                case "AccountNO":
+                  reqParamsStr += paramName + "=" + "1002210" + "&";
+                  break;
+                case "CustomerCode":
+                  reqParamsStr += paramName + "=" + "00870" + "&";
+                  break;
+                case "SupplierCode":
+                  reqParamsStr += paramName + "=" + "00870" + "&";
+                  break;
+                case "FaPiao":
+                  reqParamsStr += paramName + "=" + "NULL" + "&";
+                case "InvoiceNO":
+                  reqParamsStr += paramName + "=" + "NULL" + "&";
+                default:
+              }
             }
+          }
         }
+        if (reqParamsStr.length() > 0) {
+          reqParamsStr =
+            "?" + reqParamsStr.substring(0, reqParamsStr.length() - 1);
+        }
+        log.info(reqParamsStr);
+
+        // Do request
+        switch (requestMethod) {
+          case GET:
+            if (!testMethodsSkip.contains(funName)) {
+              try {
+                mockMvc
+                  .perform(
+                    MockMvcRequestBuilders.get(requestPath + reqParamsStr)
+                  )
+                  .andExpect(MockMvcResultMatchers.status().isOk());
+              } catch (Exception e) {
+                log.error(e.getMessage());
+              }
+            }
+
+            break;
+          default:
+        }
+      }
     }
+  }
 }

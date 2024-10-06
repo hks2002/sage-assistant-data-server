@@ -8,12 +8,10 @@
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Timestamp;
-
 import com.alibaba.fastjson2.annotation.JSONType;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-
+import java.sql.Timestamp;
 import lombok.Data;
 
 /**
@@ -25,6 +23,7 @@ public class LogFinal {
 
   @TableId(type = IdType.AUTO)
   private Long id;
+
   private String TCode;
   private String TGroup;
   private String log;

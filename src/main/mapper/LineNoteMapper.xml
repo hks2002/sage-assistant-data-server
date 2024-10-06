@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sageassistantserver.dao.LineNoteMapper">
+  <select id="getLineNoteByProjectJsonList" resultType="com.da.sageassistantserver.model.LineNote">
+  -- [{"project":"..."},{"project":"..."}]
+  WITH T1 AS (
+  SELECT DISTINCT * FROM JSON_TABLE(#{ProjectJsonList}, '$[*]' COLUMNS(
+    project VARCHAR(20) COLLATE 'utf8mb4_0900_ai_ci' PATH '$.project'
+  )) AS T0
+  )
+
+  SELECT LN.* FROM T1
+  INNER JOIN line_note LN
+    ON T1.project = LN.project
+  ORDER BY LN.id ASC
+  </select>
+  <select id="getLineNoteByLineJsonList" resultType="com.da.sageassistantserver.model.LineNote">
+  -- [{"line":"..."},{"line":"..."}]
+  WITH T1 AS (
+  SELECT DISTINCT * FROM JSON_TABLE(#{LineJsonList}, '$[*]' COLUMNS(
+    line VARCHAR(20) COLLATE 'utf8mb4_0900_ai_ci' PATH '$.line'
+  )) AS T0
+  )
+
+  SELECT LN.* FROM T1
+  INNER JOIN line_note LN
+    ON T1.line = LN.line
+  ORDER BY LN.id ASC
+  </select>
+</mapper>

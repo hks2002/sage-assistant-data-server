@@ -8,13 +8,11 @@
 
 package com.da.sageassistantserver.dao;
 
-import org.apache.ibatis.annotations.Mapper;
-
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.da.sageassistantserver.model.RobotLastRun;
+import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 @DS("slave")
-public interface RobotLastRunMapper extends BaseMapper<RobotLastRun> {
-}
+public interface RobotLastRunMapper extends BaseMapper<RobotLastRun> {}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sageassistantserver.dao.WorkActionMapper">
+  <select id="getWorkActionByProjectJsonList" resultType="com.da.sageassistantserver.model.WorkAction">
+  -- [{"project":"..."},{"project":"..."}]
+  WITH T1 AS (
+  SELECT DISTINCT * FROM JSON_TABLE(#{ProjectJsonList}, '$[*]' COLUMNS(
+    project VARCHAR(20) COLLATE 'utf8mb4_0900_ai_ci' PATH '$.project'
+  )) AS T0
+  )
+
+  SELECT WA.* FROM T1
+  INNER JOIN work_action WA
+    ON T1.project = WA.project
+  ORDER BY WA.id ASC
+  </select>
+  <select id="getWorkActionCntByProjectJsonList" resultType="com.da.sageassistantserver.model.WorkActionCnt">
+  -- [{"project":"..."},{"project":"..."}]
+  WITH T1 AS (
+  SELECT DISTINCT * FROM JSON_TABLE(#{ProjectJsonList}, '$[*]' COLUMNS(
+    project VARCHAR(20) COLLATE 'utf8mb4_0900_ai_ci' PATH '$.project'
+  )) AS T0
+  )
+
+  SELECT
+    WA.project,
+    WA.act,
+    WA.result,
+    SUM(WA.qty) OVER(PARTITION BY WA.site, WA.project, WA.act, WA.result) AS Qty FROM T1
+  INNER JOIN work_action WA
+    ON T1.project = WA.project
+    AND WA.site = #{Site}
+  </select>
+</mapper>

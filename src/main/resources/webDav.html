@@ -1,0 +1,523 @@
+<!--
+* @Author                : Robert Huang<56649783@qq.com>
+* @CreatedDate           : 2024-12-09 17:36:00
+* @LastEditors           : Robert Huang<56649783@qq.com>
+* @LastEditDate          : 2024-12-19 18:07:09
+* @CopyRight             : Dedienne Aerospace China ZhuHai
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>[%CURRENT_DIRECTORY%]</title>
+  <link href="/quasar-umd@2.15.1/materialicons.css" rel="stylesheet" type="text/css">
+  <link href="/quasar-umd@2.15.1/quasar.prod.css" rel="stylesheet" type="text/css">
+  <link href="/webdav.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <div id="q-app">
+    <!-- style="display: none;"  with v-show="true", to fix raw text {{text}} shown when refresh -->
+    <q-layout view="hHh lpR fFf">
+      <q-header elevated style="height:40px; background-color: rgb(101, 36, 161)">
+        <q-toolbar style="min-height:40px">
+          <q-btn dense flat round icon="menu" @click="toggleLeftDrawer"></q-btn>
+          <q-btn dense flat round size="sm" class="q-mr-xs" @click="goHome">
+            <q-avatar dense>
+              <q-img src="/imgs/logo.png" style="background-color: white"></q-img>
+            </q-avatar>
+          </q-btn>
+          <span class="q-gutter-sm">
+            <q-breadcrumbs separator="/" class="text-orange" active-color="secondary">
+              <q-breadcrumbs-el :label="folder.name" icon="widgets" @click="goTo(folder.path)"
+                v-for="folder in currentFolders">
+              </q-breadcrumbs-el>
+            </q-breadcrumbs>
+          </span>
+          <q-toolbar-title>
+            <span style="font-size: 22px; padding-left: 10px;">[%CURRENT_DIRECTORY%]</span>
+          </q-toolbar-title>
+          <q-file v-model="filesTobeUpload" :label="$t('UPLOAD_FILES')" dense borderless clearable multiple
+            color="white" label-color="orange" input-class="text-white" @update:model-value="doUploadFiles">
+            <template v-slot:prepend>
+              <q-icon name="cloud_upload" color="orange" />
+            </template>
+          </q-file>
+          <q-select dense borderless emit-value map-options options-dense color="primary" v-model="language"
+            :options="langOptions" option-label="label" option-value="value" @update:model-value="changeLanguage">
+            <template #selected-item="{ opt }">
+              <span class="text-white">{{ opt.label }}</span>
+            </template>
+          </q-select>
+          <span class="q-mx-md"><q-icon name="person" color="primary" size="32px"></q-icon>%USER_NAME%</span>
+          <span class="q-mx-md">
+            <q-input dense clearable debounce="1000" color="white" input-class="text-orange"
+              :placeholder="$t('BP_CODE')" v-model="BPCode" @update:model-value="searchBP">
+            </q-input>
+          </span>
+          <span class="q-mx-md"><q-icon name="people" color="primary" size="32px"></q-icon>{{BPName}}</span>
+          <q-btn dense flat round icon="menu" @click="toggleRightDrawer"></q-btn>
+        </q-toolbar>
+      </q-header>
+
+      <q-drawer v-model="leftDrawerOpen" side="left" elevated min-width="200" width="500">
+        <q-item>
+          <div class="text-h6">{{$t('DOC_ACCESS_LOG')}}</div>
+          <q-toggle v-model="viewOnlyFileAccessLogs" color="green" :label="$t('ONLY_FILES')"></q-toggle>
+        </q-item>
+        <q-infinite-scroll @load="loadLogs" :offset="50" debounce="1000" :disable="allAccessLogsDone">
+          <q-item dense v-for="(log, index) in accessLogs" :key="index"
+            v-show="!(isFolder(log.v2) && viewOnlyFileAccessLogs)" clickable @click="goTo(log.v2)">
+            <q-item-section avatar>
+              <q-icon :name="isFolder(log.v2) ? 'folder' : 'file_present'"
+                :color="isFolder(log.v2) ? 'yellow' : 'green'" size="md"></q-icon>
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ getFile(log.v2) }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-item-label>{{ log.log_at }}</q-item-label>
+            </q-item-section>
+          </q-item>
+          <template v-slot:loading>
+            <div class="row justify-center q-my-md">
+              <q-spinner-dots color="primary" size="40px" />
+            </div>
+          </template>
+        </q-infinite-scroll>
+
+      </q-drawer>
+
+      <q-page-container>
+        <q-page class="q-pa-sm">
+          <div class="row q-col-gutter-sm">
+            <div class="col-6">
+              <q-table dense selection="single" :title="$t('DOCS_IN{LOCATION}', { LOCATION: 'ZHU' })" row-key="name"
+                table-header-style="background-color: rgb(101, 36, 161); color: white" :rows="docsInZHU"
+                :columns="columnsZHU" :loading="showLoadingZHU" :rows-per-page-options="[0]"
+                @row-click="(evt,row,index)=>{goTo(row.url)}">
+                <template v-slot:top-right>
+
+                  <div class="row q-gutter-x-sm">
+                    <q-input dense clearable outlined debounce="1000" :placeholder="$t('DOC_SEARCH')" v-model="PN"
+                      @update:model-value="doSearch">
+                      <template v-slot:append>
+                        <q-icon name="search" />
+                      </template>
+                    </q-input>
+                  </div>
+                </template>
+                <template v-slot:body-cell-name="props">
+                  <q-td :props="props">
+                    <q-icon :name="props.row.isDirectory ? 'folder' : 'file_present'"
+                      :color="props.row.isDirectory ? 'yellow' : 'green'" size="xs"></q-icon>
+                    {{ props.row.name }}
+                  </q-td>
+                </template>
+                <template v-slot:loading>
+                  <q-inner-loading :showing="showLoadingZHU">
+                    <q-spinner-ios size="50px" color="primary" />
+                  </q-inner-loading>
+                </template>
+              </q-table>
+            </div>
+
+            <div class="col-3">
+              <q-table dense :title="$t('DOCS_IN{LOCATION}', { LOCATION: 'TLS(DMS)' })" row-key="name"
+                table-header-style="background-color: rgb(101, 36, 161); color: white" :rows="docsInTLS_DMS"
+                :columns="columnsTLS_DMS" :loading="showLoadingTLS_DMS" :rows-per-page-options="[0]">
+                <template v-slot:loading>
+                  <q-inner-loading :showing="showLoadingTLS_DMS">
+                    <q-spinner-ios size="50px" color="primary" />
+                  </q-inner-loading>
+                </template>
+              </q-table>
+            </div>
+
+            <div class="col-3">
+              <q-table dense :title="$t('DOCS_IN{LOCATION}', { LOCATION: 'TLS(OLD)' })" row-key="name"
+                table-header-style="background-color: rgb(101, 36, 161); color: white" :rows="docsInTLS_OLD"
+                :columns="columnsTLS_OLD" :loading="showLoadingTLS_OLD" :rows-per-page-options="[0]">
+                <template v-slot:loading>
+                  <q-inner-loading :showing="showLoadingTLS_OLD">
+                    <q-spinner-ios size="50px" color="primary" />
+                  </q-inner-loading>
+                </template>
+              </q-table>
+
+            </div>
+          </div>
+        </q-page>
+      </q-page-container>
+
+      <q-drawer v-model="rightDrawerOpen" side="right" elevated>
+
+      </q-drawer>
+
+      <q-footer elevated style="height:18px">
+        <q-bar class="fit flex-center footer">
+          <div>
+            <span class="q-pa-ms">%APP_NAME% %APP_VERSION% Developed by Dedienne China</span>
+          </div>
+        </q-bar>
+      </q-footer>
+    </q-layout>
+  </div>
+
+  <script src="/quasar-umd@2.15.1/vue.global.prod.js"></script>
+  <script src="/quasar-umd@2.15.1/quasar.umd.prod.js"></script>
+  <script src="/quasar-umd@2.15.1/zh-CN.umd.prod.js"></script>
+  <script src="/quasar-umd@2.15.1/en-US.umd.prod.js"></script>
+  <script src="/vue-i18n@10.0.5/vue-i18n.global.js"></script>
+  <script>
+    const i18n = VueI18n.createI18n({
+      legacy: false,
+      missingWarn: true,
+      fallbackWarn: false,
+      fallbackLocale: 'enUS',
+      messages: {
+        'enUS': {
+          'Home': 'Home',
+          'DOCS_IN{LOCATION}': 'Documents In {LOCATION}',
+          'FILE_NAME': 'File Name',
+          'SIZE': 'Size',
+          'LAST_MODIFIED_DATE': 'Last Modified Date',
+          'DOC_SEARCH': 'Doc Search',
+          'BP_CODE': 'Customer/Vendor Code',
+          'DOC_ACCESS_LOG': 'Document Access Logs',
+          'DOC_UPLOAD_LOG': 'Document Upload Logs',
+          'DOC_SHARE_LOG': 'Document Share Logs',
+          'ONLY_FILES': 'Only Files, No Folders',
+          'UPLOAD_FILES': 'Upload Files',
+          'DO_NOT_FORGET_BP_NAME': 'In put Code for Customer or Vendor'
+        },
+        'zhCN': {
+          'Home': '首页',
+          'DOCS_IN{LOCATION}': '位于{LOCATION}的文档',
+          'FILE_NAME': '文件名',
+          'SIZE': '大小',
+          'LAST_MODIFIED_DATE': '最后修改日期',
+          'DOC_SEARCH': '文档搜索',
+          'BP_CODE': '客户/供应商代码',
+          'DOC_ACCESS_LOG': '文档访问记录',
+          'DOC_UPLOAD_LOG': '文档上传记录',
+          'DOC_SHARE_LOG': '文档分享记录',
+          'ONLY_FILES': '仅文档, 排除文件夹',
+          'UPLOAD_FILES': '上传文档',
+          'DO_NOT_FORGET_BP_NAME': '别忘了输入客户和供应商代码'
+        }
+      }
+    })
+    const { t } = i18n.global
+
+    const app = Vue.createApp({
+      setup() {
+
+        // layout -->>
+        const leftDrawerOpen = Vue.ref(Quasar.Cookies.get('leftDrawerOpen') === "true")
+        const rightDrawerOpen = Vue.ref(Quasar.Cookies.get('rightDrawerOpen') === "true")
+        function toggleLeftDrawer() {
+          leftDrawerOpen.value = !leftDrawerOpen.value
+          Quasar.Cookies.set('leftDrawerOpen', leftDrawerOpen.value, { path: '/', expires: 30 })
+          if (leftDrawerOpen) {
+            allAccessLogsDone.value = false
+          }
+        }
+        function toggleRightDrawer() {
+          rightDrawerOpen.value = !rightDrawerOpen.value
+          Quasar.Cookies.set('rightDrawerOpen', rightDrawerOpen.value, { path: '/', expires: 30 })
+        }
+        // layout --<<
+
+        // Navigation -->>
+        function goHome() {
+          window.location.href = homeUrl
+        }
+        function goTo(url) {
+          if (isFolder(url)) {
+            window.location.href = homeUrl + url
+          } else {
+            BPCode.value.length === 5 ? window.open(homeUrl + url + '?bpCode=' + BPCode.value) :
+              window.open((encodeURI(homeUrl + url)))
+          }
+        }
+        // Navigation --<<
+
+        // Languages -->>
+        const language = Vue.ref(Quasar.Cookies.get('lang') || 'enUS')
+        const langOptions = Vue.ref([
+          { label: '中文', value: 'zhCN' },
+          { label: 'English', value: 'enUS' }
+        ])
+        function changeLanguage(lang) {
+          Quasar.lang.set(Quasar.lang[lang]);
+          Quasar.Cookies.set('lang', lang, { path: '/', expires: 30 });
+          i18n.global.locale.value = lang
+          updateTableColumns()
+        }
+        Quasar.lang.set(Quasar.lang[language.value]);
+        i18n.global.locale.value = language.value
+        // Languages -->>
+
+        const homeUrl = '%HOME_URL%'
+        const currentFolders = getFolders("%CURRENT_DIRECTORY%");
+
+        // Docs display -->>
+        const columnsZHU = Vue.ref([])
+        const columnsTLS_DMS = Vue.ref([])
+        const columnsTLS_OLD = Vue.ref([])
+        function setColumnsZHU() {
+          columnsZHU.value = [
+            { name: 'name', label: t('FILE_NAME'), align: 'left', field: 'name' },
+            { name: 'size', align: 'right', label: t('SIZE'), field: 'size', format: val => renderFileSize(val) },
+            { name: 'lastModified', label: t('LAST_MODIFIED_DATE'), field: 'lastModified' }
+          ]
+        }
+        function setColumnsTLS_DMS() {
+          columnsTLS_DMS.value = [
+            { name: 'name', label: t('FILE_NAME'), align: 'left', field: 'file_name' },
+            { name: 'lastModified', label: t('LAST_MODIFIED_DATE'), field: 'doc_modified_at' }
+          ]
+        }
+        function setColumnsTLS_OLD() {
+          columnsTLS_OLD.value = [
+            { name: 'name', label: t('FILE_NAME'), align: 'left', field: 'file' }
+          ]
+        }
+        function updateTableColumns() {
+          setColumnsZHU()
+          setColumnsTLS_DMS()
+          setColumnsTLS_OLD()
+        }
+        updateTableColumns()
+        function getFolders(path) {
+          const parts = path.split('/');
+
+          const result = [];
+          let currentPath = '';
+          parts.forEach((part, index) => {
+            if (part === '') return;
+            if (index > 0 && currentPath !== '') {
+              currentPath += '/';
+            }
+            currentPath += part;
+            result.push({ name: part, path: "/" + currentPath + "/" });
+          });
+          console.debug(result);
+          return result;
+        }
+        function getFile(path) {
+          const parts = path.split('/');
+          return path.endsWith("/") ? parts.at(-2) : parts.at(-1);
+        }
+        function isFolder(path) {
+          return path.endsWith("/") ? true :
+            getFile(path).includes('.') ? false : true;
+        }
+
+        function renderFileSize(sizeInBytes) {
+          if (sizeInBytes === -1) {
+            return '---'
+          }
+          const units = ['B', 'KB', 'MB', 'GB', 'TB']
+          let unitIndex = 0
+
+          while (sizeInBytes >= 1024 && unitIndex < units.length - 1) {
+            sizeInBytes /= 1024
+            unitIndex++
+          }
+
+          return `${sizeInBytes.toFixed(1)} ${units[unitIndex]}`
+        }
+        function searchBP() {
+          if (!BPCode.value) {
+            Quasar.SessionStorage.remove('bpCode')
+            Quasar.SessionStorage.remove('bpName')
+            BPName.value = ''
+            return
+          }
+
+          if (BPCode.value && BPCode.value.length === 5) {
+            fetch('/Data/BPHelper' + '?bpCode=' + BPCode.value)
+              .then((res) => res.text())
+              .then((bpName) => {
+                if (bpName.length > 0) {
+                  Quasar.SessionStorage.set('bpCode', BPCode.value);
+                  Quasar.SessionStorage.set('bpName', bpName);
+                  BPName.value = bpName
+                }
+              })
+          }
+        }
+
+        function doSearch(val) {
+          if (val.length < 3) return
+
+          showLoadingZHU.value = true
+          showLoadingTLS_DMS.value = true
+          showLoadingTLS_OLD.value = true
+
+          fetch('/Data/GetDocsInfoFromZHU' + '?Pn=' + val)
+            .then((res) => res.json())
+            .then((data) => {
+              docsInZHU.value = data
+            }).finally(() => {
+              showLoadingZHU.value = false
+            })
+
+          fetch('/Data/GetDocsInfoFromDms' + '?Pn=' + val)
+            .then((res) => res.json())
+            .then((data) => {
+              docsInTLS_DMS.value = data
+            }).finally(() => {
+              showLoadingTLS_DMS.value = false
+            })
+
+          fetch('/Data/GetDocsInfoFromTLS' + '?Pn=' + val)
+            .then((res) => res.json())
+            .then((data) => {
+              docsInTLS_OLD.value = data
+            }).finally(() => {
+              showLoadingTLS_OLD.value = false
+            })
+        }
+        // Docs display --<<
+
+        const docsInZHU = Vue.ref(JSON.parse(`%DOCS%`))
+        const docsInTLS_DMS = Vue.ref([])
+        const docsInTLS_OLD = Vue.ref([])
+        const showLoadingZHU = Vue.ref(false)
+        const showLoadingTLS_DMS = Vue.ref(false)
+        const showLoadingTLS_OLD = Vue.ref(false)
+        const selected = Vue.ref([])
+        const BPCode = Vue.ref(Quasar.SessionStorage.getItem('bpCode') || '')
+        const BPName = Vue.ref(Quasar.SessionStorage.getItem('bpName') || '')
+        const PN = Vue.ref('')
+
+        if (BPCode.value.length != 5) {
+          Quasar.Notify.create({
+            type: 'info',
+            message: t('DO_NOT_FORGET_BP_NAME'),
+            position: 'top-right'
+
+          })
+        }
+
+        // Access log -->>
+        const accessLogs = Vue.ref([])
+        const viewOnlyFileAccessLogs = Vue.ref(true)
+        const allAccessLogsDone = Vue.ref(!leftDrawerOpen.value)
+        function loadLogs(index, done = () => { }) {
+          allAccessLogsDone.value = false
+          fetch('/Data/UserLogs' + '?TCode=DOC_ACCESS_SUCCESS&Offset=' + (index - 1) * 100 + '&Limit=100')
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.length > 0) {
+                accessLogs.value.push(...data)
+              } else {
+                allAccessLogsDone.value = true
+              }
+            }).finally(
+              done()
+            )
+        }
+        // Access log -->>
+
+        // File upload -->>
+        const filesTobeUpload = Vue.ref(null)
+        function doUploadFiles(files) {
+          if (!files) return
+
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i]
+            console.log(`FileName: ${file.name}, Size: ${file.size} bytes, Type: ${file.type}`)
+            doUploadFile(file)
+          }
+        }
+        function doUploadFile(file) {
+          const formData = new FormData()
+          formData.append('file', file) // 'file' 是服务器端用来接收文件的字段名，可以根据实际情况调整
+
+          fetch('/Data/FileUpload', {
+            method: 'POST',
+            body: formData
+          })
+            .then((response) => {
+              if (response.ok) {
+                return response.json()
+              } else {
+                if (response.status === 401) {
+                  return { success: false, msg: 'Login Required!' }
+                }
+                if (response.status === 403) {
+                  return { success: false, msg: 'Forbidden!' }
+                }
+                return { success: false, msg: 'Upload failed!' }
+              }
+            })
+            .then((data) => {
+              data.success ?
+                Quasar.Notify.create({
+                  type: 'positive',
+                  position: 'top',
+                  message: data.msg || 'Success'
+                }) :
+                Quasar.Notify.create({
+                  type: 'negative',
+                  position: 'top',
+                  message: data.msg || 'Failed'
+                })
+            })
+            .catch((error) => {
+              alert(error)
+            })
+        }
+        // File upload --<<
+
+        return {
+          leftDrawerOpen,
+          rightDrawerOpen,
+          currentFolders,
+          columnsZHU,
+          columnsTLS_DMS,
+          columnsTLS_OLD,
+          docsInZHU,
+          docsInTLS_DMS,
+          docsInTLS_OLD,
+          showLoadingZHU,
+          showLoadingTLS_DMS,
+          showLoadingTLS_OLD,
+          selected,
+          BPCode,
+          BPName,
+          PN,
+          language,
+          langOptions,
+          accessLogs,
+          toggleLeftDrawer,
+          toggleRightDrawer,
+          goHome,
+          goTo,
+          getFile,
+          isFolder,
+          doSearch,
+          searchBP,
+          changeLanguage,
+          viewOnlyFileAccessLogs,
+          allAccessLogsDone,
+          loadLogs,
+          filesTobeUpload,
+          doUploadFiles
+        }
+      }
+    })
+
+    app.use(Quasar)
+    app.use(i18n)
+    app.mount('#q-app')
+  </script>
+</body>
+
+</html>

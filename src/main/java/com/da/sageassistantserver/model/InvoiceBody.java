@@ -8,24 +8,22 @@
 
 package com.da.sageassistantserver.model;
 
-import java.math.BigDecimal;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.math.BigDecimal;
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class InvoiceBody {
 
-    private Integer Line;
-    private String PN;
-    private String Description;
-    private Integer Qty;
-    private String Unit;
-    private BigDecimal NetPrice;
-    private BigDecimal AmountNoTax;
-    private BigDecimal AmountTaxInclude;
-    private BigDecimal AmountTax;
-    private BigDecimal TaxRate;
+  private Integer Line;
+  private String PN;
+  private String Description;
+  private Integer Qty;
+  private String Unit;
+  private BigDecimal NetPrice;
+  private BigDecimal AmountNoTax;
+  private BigDecimal AmountTaxInclude;
+  private BigDecimal AmountTax;
+  private BigDecimal TaxRate;
 }

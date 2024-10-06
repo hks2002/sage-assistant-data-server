@@ -2,241 +2,1486 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.da.sageassistantserver.dao.SupplierMapper">
-	<!--Open L2 Cache under Names pace: 1 Hour-->
-	<cache eviction="LRU" flushInterval="3600000" readOnly="true" size="1024" />
-	<select id="findSupplierByCodeOrName" resultType="com.da.sageassistantserver.model.SupplierName">
-	    SELECT 
-	        BPARTNER.BPRNUM_0 AS SupplierCode,
-	        BPARTNER.BPRNAM_0+BPARTNER.BPRNAM_1 AS SupplierName
-	    FROM EXPLOIT.BPARTNER AS BPARTNER
-			INNER JOIN EXPLOIT.BPSUPPLIER AS BPSUPPLIER
-				ON BPARTNER.BPRNUM_0 = BPSUPPLIER.BPSNUM_0
-		WHERE 
-			BPARTNER.BPRNUM_0 LIKE #{SupplierCodeOrName} 
-				OR BPARTNER.BPRNAM_0 LIKE #{SupplierCodeOrName}
-				OR BPARTNER.BPRNAM_1 LIKE #{SupplierCodeOrName}
-		ORDER BY BPRNUM_0 ASC
-		OFFSET 0 ROWS
-		FETCH NEXT #{Count} ROWS ONLY
-	</select>
-	<select id="findBusinessPartnerByCode" resultType="com.da.sageassistantserver.model.BusinessPartnerName">
-	    SELECT 
-	        BPARTNER.BPRNUM_0 AS BPCode,
-	        BPARTNER.BPRNAM_0+BPARTNER.BPRNAM_1 AS BPName
-	    FROM EXPLOIT.BPARTNER AS BPARTNER
-		WHERE 
-			BPARTNER.BPRNUM_0 = #{BPCode}
-	</select>
-	<select id="findSupplierDetailsByCode" resultType="com.da.sageassistantserver.model.SupplierDetails">
-	    SELECT 
-		    BPARTNER.BPRNUM_0 AS SupplierCode,
-		    BPARTNER.BPRNAM_0 AS SupplierName0,
-		    BPARTNER.BPRNAM_1 AS SupplierName1,
-			BPADDRESS.BPAADDLIG_0 AS Address0,
-			BPADDRESS.BPAADDLIG_1 AS Address1,
-			BPADDRESS.POSCOD_0 AS PostCode,
-			BPADDRESS.CRYNAM_0 AS Country,
-			BPADDRESS.SAT_0 AS State,
-			BPADDRESS.CTY_0 AS City,
-			BPADDRESS.TEL_0 AS Tel0,
-			BPADDRESS.TEL_1 AS Tel1,
-			BPADDRESS.TEL_2 AS Tel2,
-			BPADDRESS.TEL_3 AS Tel3,
-			BPADDRESS.TEL_4 AS Tel4,
-			BPADDRESS.FAX_0 AS Fax0,
-			BPADDRESS.MOB_0 AS Mobile0,
-			BPADDRESS.WEB_0 AS Email0,
-			BPADDRESS.WEB_1 AS Email1,
-			BPADDRESS.WEB_2 AS Email2,
-			BPADDRESS.WEB_3 AS Email3,
-			BPADDRESS.WEB_4 AS Email4,
-			BPADDRESS.FCYWEB_0 AS WebSite
-		FROM EXPLOIT.BPARTNER AS BPARTNER
-		   LEFT JOIN EXPLOIT.BPADDRESS AS BPADDRESS
-		     ON BPARTNER.BPRNUM_0 = BPADDRESS.BPANUM_0
-		WHERE BPARTNER.BPRNUM_0 = #{SupplierCode}
-	</select>
-	<select id="findSupplierTotalAmount" resultType="com.da.sageassistantserver.model.SupplierSummaryAmount">
-        SELECT DISTINCT
-			POHFCY_0 AS Site,
-			BPSNUM_0 AS SupplierCode,
-			CUR_0 AS Currency,
-			SUM(TOTLINATI_0) OVER (PARTITION BY PORDER.POHFCY_0, PORDER.BPSNUM_0, CUR_0 ) AS Amount
-		FROM EXPLOIT.PORDER AS PORDER
-		WHERE BPSNUM_0=#{SupplierCode}
-		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-	</select>
-	<select id="findSupplierTotalProjectQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
-        SELECT DISTINCT
-			PORDER.POHFCY_0 AS Site,
-			PORDER.BPSNUM_0 AS SupplierCode,
-			'Project' AS CountType,
-			COUNT(PORDERP.PJT_0) OVER (PARTITION BY PORDER.POHFCY_0,PORDER.BPSNUM_0) AS Qty
-		FROM EXPLOIT.PORDER AS PORDER
-			LEFT JOIN EXPLOIT.PORDERP AS PORDERP
-			    ON PORDER.POHNUM_0=PORDERP.POHNUM_0
-		WHERE PORDER.BPSNUM_0=#{SupplierCode}
-		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-	</select>
-	<select id="findSupplierTotalItemQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
-        SELECT DISTINCT
-			PORDER.POHFCY_0 AS Site,
-			PORDER.BPSNUM_0 AS SupplierCode,
-			'Item' AS CountType,
-			SUM(PORDER.LINNBR_0) OVER (PARTITION BY POHFCY_0, BPSNUM_0) AS Qty
-		FROM EXPLOIT.PORDER AS PORDER
-		WHERE PORDER.BPSNUM_0=#{SupplierCode}
-		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-	</select>
-	<select id="findSupplierTotalProductQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
-        SELECT DISTINCT
-			PORDER.POHFCY_0 AS Site,
-			PORDER.BPSNUM_0 AS SupplierCode,
-			'Product' AS CountType,
-			SUM(PORDER.TOTLINQTY_0) OVER (PARTITION BY POHFCY_0, BPSNUM_0) AS Qty
-		FROM EXPLOIT.PORDER AS PORDER
-		WHERE BPSNUM_0=#{SupplierCode}
-		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-	</select>
-	<select id="findSupplierOpenAmount" resultType="com.da.sageassistantserver.model.SupplierSummaryAmount">
-        SELECT DISTINCT 
-            PORDER.POHFCY_0 AS Site,
-			PORDER.CUR_0 AS Currency,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-			SUM(PORDERQ.LINATIAMT_0) OVER (PARTITION BY PORDER.POHFCY_0, PORDER.BPSNUM_0, PORDER.CUR_0 ) AS Amount
-	    FROM  EXPLOIT.PORDERQ AS PORDERQ
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        	ON PORDERQ.POHNUM_0=PORDER.POHNUM_0
-	    WHERE PORDERQ.LINCLEFLG_0 != 2
-		    AND PORDERQ.PTHNUM_0 =''
-		    AND PORDER.BPSNUM_0=#{SupplierCode}
-	</select>
-	<select id="findSupplierOpenProjectQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
-        SELECT DISTINCT 
-            PORDER.POHFCY_0 AS Site,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-			'Project' AS CountType,
-			COUNT(PORDERP.PJT_0) OVER (PARTITION BY PORDER.POHFCY_0,PORDER.BPSNUM_0) AS Qty
-	    FROM  EXPLOIT.PORDERQ AS PORDERQ
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        	ON PORDERQ.POHNUM_0=PORDER.POHNUM_0
-	        LEFT JOIN EXPLOIT.PORDERP AS PORDERP
-	            ON PORDERQ.POHNUM_0=PORDERP.POHNUM_0
-	               AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-	    WHERE PORDERQ.LINCLEFLG_0 != 2
-		    AND PORDERQ.PTHNUM_0 =''
-		    AND PORDER.BPSNUM_0=#{SupplierCode}
-	</select>
-	<select id="findSupplierOpenItemQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
-        SELECT DISTINCT 
-            PORDER.POHFCY_0 AS Site,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-			'Item' AS CountType,
-			COUNT(PORDERQ.ROWID) OVER (PARTITION BY PORDER.POHFCY_0,PORDER.BPSNUM_0) AS Qty
-	    FROM  EXPLOIT.PORDERQ AS PORDERQ
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        ON PORDERQ.POHNUM_0=PORDER.POHNUM_0
-	    WHERE PORDERQ.LINCLEFLG_0 != 2
-		    AND PORDERQ.PTHNUM_0 =''
-		    AND PORDER.BPSNUM_0=#{SupplierCode}
-	</select>
-	<select id="findSupplierOpenProductQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
-        SELECT DISTINCT 
-            PORDER.POHFCY_0 AS Site,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-			'Product' AS CountType,
-			SUM(PORDERQ.QTYUOM_0) OVER (PARTITION BY PORDER.POHFCY_0, PORDER.BPSNUM_0) AS Qty
-	    FROM  EXPLOIT.PORDERQ AS PORDERQ
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        ON PORDERQ.POHNUM_0=PORDER.POHNUM_0
-	    WHERE PORDERQ.LINCLEFLG_0 != 2
-		    AND PORDERQ.PTHNUM_0 =''
-		    AND PORDER.BPSNUM_0=#{SupplierCode}
-	</select>
-	<select id="findSupplierDeliveryHistory" resultType="com.da.sageassistantserver.model.SupplierDeliveryHistory">
-	    SELECT DISTINCT 
-	        PORDERQ.PRHFCY_0 AS Site,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-	        PORDERP.POHNUM_0 AS PurchaseNO,
-	        PORDERP.PJT_0 AS ProjectNO,
-	        PORDERP.ITMREF_0 AS PN,
-	        PORDERP.ITMDES_0 AS Description, IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
-	        PORDERQ.EXTRCPDAT_0 AS ExpectDate,
-	        PORDER.ORDDAT_0 AS OrderDate,
-			PORDERQ.PTHNUM_0 AS ReceiptNO,
-			RECEIPTD.RCPDAT_0 AS ReceiptDate,
-			DATEDIFF(day,PORDER.ORDDAT_0, RECEIPTD.RCPDAT_0) AS DaysNeed
-	    FROM  EXPLOIT.PORDERP AS PORDERP
-	        LEFT JOIN EXPLOIT.PORDERQ AS PORDERQ
-	        ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
-	            AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        ON PORDERP.POHNUM_0=PORDER.POHNUM_0
-			LEFT JOIN EXPLOIT.PRECEIPTD AS RECEIPTD
-			ON PORDERQ.POHNUM_0 = RECEIPTD.POHNUM_0 AND PORDERQ.POPLIN_0 = RECEIPTD.POPLIN_0
-	    WHERE PORDERQ.PTHNUM_0 !=''
-		    AND PORDER.BPSNUM_0=#{SupplierCode}
-		    AND (RECEIPTD.RCPDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-		ORDER BY RECEIPTD.RCPDAT_0 ASC
-	</select>
-	<select id="findSupplierDelayHistory" resultType="com.da.sageassistantserver.model.SupplierDelayHistory">
-	    SELECT DISTINCT 
-	        PORDERQ.PRHFCY_0 AS Site,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-	        PORDERP.POHNUM_0 AS PurchaseNO,
-	        PORDERP.PJT_0 AS ProjectNO,
-	        PORDERP.ITMREF_0 AS PN,
-	        PORDERP.ITMDES_0 AS Description, IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
-	        PORDERQ.EXTRCPDAT_0 AS ExpectDate,
-	        PORDER.ORDDAT_0 AS OrderDate,
-			PORDERQ.PTHNUM_0 AS ReceiptNO,
-			RECEIPTD.RCPDAT_0 AS ReceiptDate,
-			IIF(PORDERQ.PTHNUM_0 = '' AND getDate()>PORDERQ.EXTRCPDAT_0,
-			    DATEDIFF(day,PORDERQ.EXTRCPDAT_0,getDate()) ,
-				DATEDIFF(day,PORDERQ.EXTRCPDAT_0, RECEIPTD.RCPDAT_0)) AS DaysDelay
-	    FROM  EXPLOIT.PORDERP AS PORDERP
-	        LEFT JOIN EXPLOIT.PORDERQ AS PORDERQ
-	        ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
-	            AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        ON PORDERP.POHNUM_0=PORDER.POHNUM_0
-			LEFT JOIN EXPLOIT.PRECEIPTD AS RECEIPTD
-			ON PORDERQ.POHNUM_0 = RECEIPTD.POHNUM_0 AND PORDERQ.POPLIN_0 = RECEIPTD.POPLIN_0
-	    WHERE PORDER.BPSNUM_0=#{SupplierCode}
-		    AND (PORDERQ.EXTRCPDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-		    AND (RECEIPTD.RCPDAT_0 - PORDERQ.EXTRCPDAT_0 >0 OR RECEIPTD.RCPDAT_0 IS NULL)
-		ORDER BY PORDERQ.EXTRCPDAT_0 ASC
-	</select>
-	<select id="findSupplierOpenItems" resultType="com.da.sageassistantserver.model.SupplierOpenItems">
-	    SELECT DISTINCT 
-	        PORDERQ.PRHFCY_0 AS Site,
-	        PORDER.BPSNUM_0 AS SupplierCode,
-	        PORDERP.POHNUM_0 AS PurchaseNO,
-	        PORDERP.PJT_0 AS ProjectNO,
-	        PORDERP.ITMREF_0 AS PN,
-	        PORDERP.ITMDES_0 AS Description, IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
-	        PORDERQ.EXTRCPDAT_0 AS ExpectDate,
-	        PORDER.ORDDAT_0 AS OrderDate,
-			IIF(PORDERQ.PTHNUM_0 = '' AND getDate()>PORDERQ.EXTRCPDAT_0,
-			    DATEDIFF(day,PORDERQ.EXTRCPDAT_0,getDate()) ,
-				DATEDIFF(day,PORDERQ.EXTRCPDAT_0, RECEIPTD.RCPDAT_0)) AS DaysDelay
-	    FROM  EXPLOIT.PORDERP AS PORDERP
-	        LEFT JOIN EXPLOIT.PORDERQ AS PORDERQ
-	        ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
-	            AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
-	        LEFT JOIN EXPLOIT.PORDER AS PORDER
-	        ON PORDERP.POHNUM_0=PORDER.POHNUM_0
-			LEFT JOIN EXPLOIT.PRECEIPTD AS RECEIPTD
-			ON PORDERQ.POHNUM_0 = RECEIPTD.POHNUM_0 AND PORDERQ.POPLIN_0 = RECEIPTD.POPLIN_0
-	    WHERE PORDERQ.LINCLEFLG_0 != 2
-		    AND PORDERQ.PTHNUM_0 =''
-		    AND PORDER.BPSNUM_0=#{SupplierCode}
-		ORDER BY PORDERQ.EXTRCPDAT_0 ASC
-	</select>
-	<select id="findPurchaseDate" resultType="String">
-	    SELECT DISTINCT
-	        PORDER.ORDDAT_0 AS OrderDate
-	    FROM  EXPLOIT.PORDER AS PORDER
-	    WHERE PORDER.POHNUM_0=#{PurchaseNO}
-	</select>
+  <!--Open L2 Cache under Names pace: 1 Hour-->
+  <!-- <cache eviction="LRU" flushInterval="3600000" readOnly="true" size="1024" /> -->
+  <select id="findSupplierByCodeOrName" resultType="com.da.sageassistantserver.model.SupplierName">
+  SELECT 
+      BPARTNER.BPRNUM_0 AS SupplierCode,
+      BPARTNER.BPRNAM_0+BPARTNER.BPRNAM_1 AS SupplierName
+  FROM EXPLOIT.BPARTNER AS BPARTNER
+    INNER JOIN EXPLOIT.BPSUPPLIER AS BPSUPPLIER
+      ON BPARTNER.BPRNUM_0 = BPSUPPLIER.BPSNUM_0
+  WHERE 
+    BPARTNER.BPRNUM_0 LIKE #{SupplierCodeOrName} 
+      OR BPARTNER.BPRNAM_0 LIKE #{SupplierCodeOrName}
+      OR BPARTNER.BPRNAM_1 LIKE #{SupplierCodeOrName}
+  ORDER BY BPRNUM_0 ASC
+  OFFSET 0 ROWS
+  FETCH NEXT #{Count} ROWS ONLY
+  </select>
+  <select id="findBusinessPartnerByCode" resultType="com.da.sageassistantserver.model.BusinessPartnerName">
+  SELECT 
+        BPARTNER.BPRNUM_0 AS BPCode,
+        BPARTNER.BPRNAM_0+BPARTNER.BPRNAM_1 AS BPName
+    FROM EXPLOIT.BPARTNER AS BPARTNER
+  WHERE 
+    BPARTNER.BPRNUM_0 = #{BPCode}
+  </select>
+  <select id="findSupplierDetailsByCode" resultType="com.da.sageassistantserver.model.SupplierDetails">
+    SELECT 
+      BPARTNER.BPRNUM_0 AS SupplierCode,
+      BPARTNER.BPRNAM_0 AS SupplierName0,
+      BPARTNER.BPRNAM_1 AS SupplierName1,
+      BPADDRESS.BPAADDLIG_0 AS Address0,
+      BPADDRESS.BPAADDLIG_1 AS Address1,
+      BPADDRESS.POSCOD_0 AS PostCode,
+      BPADDRESS.CRYNAM_0 AS Country,
+      BPADDRESS.SAT_0 AS State,
+      BPADDRESS.CTY_0 AS City,
+      BPADDRESS.TEL_0 AS Tel0,
+      BPADDRESS.TEL_1 AS Tel1,
+      BPADDRESS.TEL_2 AS Tel2,
+      BPADDRESS.TEL_3 AS Tel3,
+      BPADDRESS.TEL_4 AS Tel4,
+      BPADDRESS.FAX_0 AS Fax0,
+      BPADDRESS.MOB_0 AS Mobile0,
+      BPADDRESS.WEB_0 AS Email0,
+      BPADDRESS.WEB_1 AS Email1,
+      BPADDRESS.WEB_2 AS Email2,
+      BPADDRESS.WEB_3 AS Email3,
+      BPADDRESS.WEB_4 AS Email4,
+      BPADDRESS.FCYWEB_0 AS WebSite
+    FROM EXPLOIT.BPARTNER AS BPARTNER
+       LEFT JOIN EXPLOIT.BPADDRESS AS BPADDRESS
+         ON BPARTNER.BPRNUM_0 = BPADDRESS.BPANUM_0
+    WHERE BPARTNER.BPRNUM_0 = #{SupplierCode}
+  </select>
+  <select id="findSupplierSumAmount" resultType="com.da.sageassistantserver.model.SupplierSummaryAmount">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+          PORDERQ.PRHFCY_0 AS Site,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          PORDERQ.POHNUM_0 AS PurchaseNO,
+          PORDERQ.POPLIN_0 AS PurchaseLine,
+          PORDER.ORDDAT_0 AS OrderDate,
+          PORDERQ.LINATIAMT_0 AS Price,
+          PORDERQ.NETCUR_0 AS Currency,
+          PORDERQ.LINAMTCPR_0 + PORDERQ.AMTTAXLIN1_0 + PORDERQ.AMTTAXLIN2_0 + PORDERQ.AMTTAXLIN3_0 AS LocalPrice,
+          PORDERQ.CPRCUR_0 AS LocalCurrency
+      FROM  EXPLOIT.PORDERQ AS PORDERQ
+          INNER JOIN EXPLOIT.PORDER AS PORDER
+              ON PORDERQ.POHNUM_0=PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+              ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+      WHERE 
+      (PORDER.ORDDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <if test=' SupplierCode != "ALL" '>
+      AND PORDER.BPSNUM_0 = #{SupplierCode}
+      </if>
+
+      <choose>
+      <when test=' SupplierType ==  "ALL" '>
+      </when>
+      <when test=' SupplierType ==  "MAIN" '>
+        AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+      </when>
+      <when test=' SupplierType ==  "OTHERS" '>
+        AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+      </when>
+      <otherwise>
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      </when>
+      <when test=' Site ==  "CHINA" '>
+        AND PORDERQ.PRHFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+        AND PORDERQ.PRHFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+    T0.Site,
+    T0.SupplierCode,
+    T0.PurchaseNO,
+    T0.PurchaseLine,
+    T0.OrderDate,
+    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
+    T0.LocalPrice,
+    T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.OrderDate BETWEEN T1.StartDate AND T1.EndDate
+ )
+ 
+  SELECT DISTINCT
+    T2.Site,
+     <if test=' SupplierCode != "ALL" '>
+    T2.SupplierCode,
+     </if>
+    <choose>
+      <when test=' Interval == "Month" and SupplierCode != "ALL" '>
+      FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00') AS Target,
+      ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.SupplierCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.SupplierCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalTarget,
+      </when>
+      <when test=' Interval == "Month" and SupplierCode == "ALL" '>
+      FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00') AS Target,
+      ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalTarget,
+      </when>
+      <when test=' Interval == "Year" and SupplierCode != "ALL" '>
+      FORMAT(Year(T2.OrderDate), '0000') AS Target,
+      ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.SupplierCode, FORMAT(Year(T2.OrderDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.SupplierCode, FORMAT(Year(T2.OrderDate), '0000')), 0) AS SumLocalTarget,
+      </when>
+      <when test=' Interval == "Year" and SupplierCode == "ALL" '>
+      FORMAT(Year(T2.OrderDate), '0000') AS Target,
+      ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')), 0) AS SumLocalTarget,
+      </when>
+      <otherwise>
+      FORMAT(Year(T2.OrderDate), '0000') AS Target,
+      ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')), 0) AS SumLocalTarget,
+      </otherwise>
+    </choose>
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     Target ASC
+  </select>
+  <select id="findSupplierSumAmountTop" resultType="com.da.sageassistantserver.model.SupplierSummaryAmountTop">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+          PORDERQ.PRHFCY_0 AS Site,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          PORDERQ.POHNUM_0 AS PurchaseNO,
+          PORDERQ.POPLIN_0 AS PurchaseLine,
+          PORDER.ORDDAT_0 AS OrderDate,
+          PORDERQ.LINATIAMT_0 AS Price,
+          PORDERQ.NETCUR_0 AS Currency,
+          PORDERQ.LINAMTCPR_0 + PORDERQ.AMTTAXLIN1_0 + PORDERQ.AMTTAXLIN2_0 + PORDERQ.AMTTAXLIN3_0 AS LocalPrice,
+          PORDERQ.CPRCUR_0 AS LocalCurrency
+      FROM  EXPLOIT.PORDERQ AS PORDERQ
+          INNER JOIN EXPLOIT.PORDER AS PORDER
+              ON PORDERQ.POHNUM_0=PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+              ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+      WHERE 
+      (PORDER.ORDDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' SupplierType ==  "ALL" '>
+      </when>
+      <when test=' SupplierType ==  "MAIN" '>
+        AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+      </when>
+      <when test=' SupplierType ==  "OTHERS" '>
+        AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+      </when>
+      <otherwise>
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      </when>
+      <when test=' Site ==  "CHINA" '>
+        AND PORDERQ.PRHFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+        AND PORDERQ.PRHFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+    T0.Site,
+    T0.SupplierCode,
+    T0.PurchaseNO,
+    T0.PurchaseLine,
+    T0.OrderDate,
+    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
+    T0.LocalPrice,
+    T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.OrderDate BETWEEN T1.StartDate AND T1.EndDate
+ )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    T2.SupplierCode,
+    BPSUPPLIER.BPSSHO_0 AS SupplierName,
+    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.SupplierCode), 0) AS SumUSD,
+    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.SupplierCode), 0) AS SumLocal,
+    T2.LocalCurrency
+  FROM T2
+  LEFT JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+       ON T2.SupplierCode = BPSUPPLIER.BPSNUM_0
+  ORDER BY 
+     SumUSD DESC  
+  OFFSET 0 ROWS
+  FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findSupplierOTD" resultType="com.da.sageassistantserver.model.SupplierOTD">
+    WITH T0 AS (
+      SELECT DISTINCT 
+          PORDERQ.PRHFCY_0 AS Site,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          PORDERP.POHNUM_0 AS PurchaseNO,
+          PORDERP.POPLIN_0 AS PurchaseLine,
+          PORDERQ.QTYSTU_0 AS Qty,
+          PORDER.ORDDAT_0 AS OrderDate,
+          IIF(PORDERQ.LINOCNDAT_0='1753-01-01',PORDERQ.EXTRCPDAT_0,PORDERQ.LINOCNDAT_0) AS AckDate,
+          MAX(PRECEIPTD.PTHNUM_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS LastReceiveNO,
+          MAX(PRECEIPTD.RCPDAT_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS LastReceiveDate,
+          SUM(PRECEIPTD.QTYSTU_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS TotalReceiveQty
+      FROM  EXPLOIT.PORDERP AS PORDERP
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+              ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
+                AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER
+              ON PORDERP.POHNUM_0=PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+              ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+          LEFT JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
+              ON PORDERP.POHNUM_0 = PRECEIPTD.POHNUM_0 AND PORDERP.POPLIN_0 = PRECEIPTD.POPLIN_0
+      WHERE 1=1 
+      <if test=' SupplierCode != "ALL" '>
+      AND PORDER.BPSNUM_0 = #{SupplierCode}
+      </if>
+
+      <choose>
+      <when test=' SupplierType ==  "ALL" '>
+      </when>
+      <when test=' SupplierType ==  "MAIN" '>
+        AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+      </when>
+      <when test=' SupplierType ==  "OTHERS" '>
+        AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+      </when>
+      <otherwise>
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site == "ALL" '>
+      </when>
+      <when test=' Site == "CHINA" '>
+        AND PORDERQ.PRHFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+        AND PORDERQ.PRHFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ), 
+    T1 AS (
+        SELECT 
+        T0.*,
+        IIF(T0.LastReceiveNO IS NULL, 
+            DATEDIFF(day, T0.AckDate, getDate()),
+            IIF(T0.TotalReceiveQty >= T0.Qty, 
+                DATEDIFF(day, T0.AckDate, T0.LastReceiveDate) ,
+                DATEDIFF(day, T0.AckDate, getDate())
+            )
+        )  AS DaysDelay
+      FROM T0
+      WHERE 
+       T0.AckDate BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND IIF(CONVERT(datetime, #{DateTo}, 120) - GETDATE() > 0, GETDATE(), CONVERT(datetime, #{DateTo}, 120))
+    ),
+    T2 AS (
+      SELECT DISTINCT
+      T1.Site,
+      <if test=' SupplierCode != "ALL" '>
+      T1.SupplierCode,
+      </if>
+      <choose>
+      <when test=' Interval == "Month" and SupplierCode != "ALL" '>
+      FORMAT(Year(T1.AckDate), '0000') + '-' + FORMAT(MONTH(T1.AckDate), '00') AS Target,
+      COUNT(IIF(T1.DaysDelay>0, NULL, 1)) OVER(PARTITION BY T1.Site, T1.SupplierCode, FORMAT(Year(T1.AckDate), '0000') + '-' +  FORMAT(MONTH(T1.AckDate), '00')) AS OTCnt,
+      COUNT(1) OVER(PARTITION BY T1.Site, T1.SupplierCode, FORMAT(Year(T1.AckDate), '0000') + '-' +  FORMAT(MONTH(T1.AckDate), '00')) AS AllCnt
+      </when>
+      <when test=' Interval == "Month" and SupplierCode == "ALL" '>
+      FORMAT(Year(T1.AckDate), '0000') + '-' + FORMAT(MONTH(T1.AckDate), '00') AS Target,
+      COUNT(IIF(T1.DaysDelay>0, NULL, 1)) OVER(PARTITION BY T1.Site, FORMAT(Year(T1.AckDate), '0000') + '-' +  FORMAT(MONTH(T1.AckDate), '00')) AS OTCnt,
+      COUNT(1) OVER(PARTITION BY T1.Site, FORMAT(Year(T1.AckDate), '0000') + '-' +  FORMAT(MONTH(T1.AckDate), '00')) AS AllCnt
+      </when>
+      <when test=' Interval == "Year" and SupplierCode != "ALL" '>
+      FORMAT(Year(T1.AckDate), '0000') AS Target,
+      COUNT(IIF(T1.DaysDelay>0, NULL, 1)) OVER(PARTITION BY T1.Site, T1.SupplierCode, FORMAT(Year(T1.AckDate), '0000')) AS OTCnt,
+      COUNT(1) OVER(PARTITION BY T1.Site, T1.SupplierCode, FORMAT(Year(T1.AckDate), '0000')) AS AllCnt
+      </when>
+      <when test=' Interval == "Year" and SupplierCode == "ALL" '>
+      FORMAT(Year(T1.AckDate), '0000') AS Target,
+      COUNT(IIF(T1.DaysDelay>0, NULL, 1)) OVER(PARTITION BY T1.Site, FORMAT(Year(T1.AckDate), '0000')) AS OTCnt,
+      COUNT(1) OVER(PARTITION BY T1.Site, FORMAT(Year(T1.AckDate), '0000')) AS AllCnt
+      </when>
+      <otherwise>
+      FORMAT(Year(T1.AckDate), '0000') AS Target,
+      COUNT(IIF(T1.DaysDelay>0, NULL, 1)) OVER(PARTITION BY T1.Site, FORMAT(Year(T1.AckDate), '0000')) AS OTCnt,
+      COUNT(1) OVER(PARTITION BY T1.Site, FORMAT(Year(T1.AckDate), '0000')) AS AllCnt
+      </otherwise>
+    </choose>
+    FROM T1
+    )
+
+    SELECT 
+      T2.*,
+      ROUND(T2.OTCnt*100.0/T2.AllCnt, 2) AS OTD 
+    FROM T2
+      ORDER BY 
+        Target ASC
+  </select>
+  <select id="findSupplierOTDTop" resultType="com.da.sageassistantserver.model.SupplierOTDTop">
+    WITH T0 AS (
+      SELECT DISTINCT 
+          PORDERQ.PRHFCY_0 AS Site,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          PORDERP.POHNUM_0 AS PurchaseNO,
+          PORDERP.POPLIN_0 AS PurchaseLine,
+          PORDERQ.QTYSTU_0 AS Qty,
+          PORDER.ORDDAT_0 AS OrderDate,
+          IIF(PORDERQ.LINOCNDAT_0='1753-01-01',PORDERQ.EXTRCPDAT_0,PORDERQ.LINOCNDAT_0) AS AckDate,
+          MAX(PRECEIPTD.PTHNUM_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS LastReceiveNO,
+          MAX(PRECEIPTD.RCPDAT_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS LastReceiveDate,
+          SUM(PRECEIPTD.QTYSTU_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS TotalReceiveQty
+      FROM  EXPLOIT.PORDERP AS PORDERP
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+              ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
+                AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER
+              ON PORDERP.POHNUM_0=PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+              ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+          LEFT JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
+              ON PORDERP.POHNUM_0 = PRECEIPTD.POHNUM_0 AND PORDERP.POPLIN_0 = PRECEIPTD.POPLIN_0
+      WHERE 1=1 
+
+      <choose>
+      <when test=' SupplierType ==  "ALL" '>
+      </when>
+      <when test=' SupplierType ==  "MAIN" '>
+        AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+      </when>
+      <when test=' SupplierType ==  "OTHERS" '>
+        AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+      </when>
+      <otherwise>
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site == "ALL" '>
+      </when>
+      <when test=' Site == "CHINA" '>
+        AND PORDERQ.PRHFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+        AND PORDERQ.PRHFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ), 
+    T1 AS (
+        SELECT 
+        T0.*,
+        IIF(T0.LastReceiveNO IS NULL, 
+            DATEDIFF(day, T0.AckDate, getDate()),
+            IIF(T0.TotalReceiveQty >= T0.Qty, 
+                DATEDIFF(day, T0.AckDate, T0.LastReceiveDate) ,
+                DATEDIFF(day, T0.AckDate, getDate())
+            )
+        )  AS DaysDelay
+      FROM T0
+      WHERE 
+       T0.AckDate BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND IIF(CONVERT(datetime, #{DateTo}, 120) - GETDATE() > 0, GETDATE(), CONVERT(datetime, #{DateTo}, 120))
+    ),
+    T2 AS (
+      SELECT DISTINCT
+      T1.Site,
+      T1.SupplierCode,
+      COUNT(IIF(T1.DaysDelay>0, NULL, 1)) OVER(PARTITION BY T1.Site, T1.SupplierCode) AS OTCnt,
+      COUNT(1) OVER(PARTITION BY T1.Site, T1.SupplierCode) AS AllCnt
+    FROM T1
+    )
+
+    SELECT 
+      T2.*,
+      BPSUPPLIER.BPSSHO_0 AS SupplierName,
+      ROUND(T2.OTCnt*100.0/T2.AllCnt, 2) AS OTD 
+    FROM T2
+    LEFT JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+         ON T2.SupplierCode = BPSUPPLIER.BPSNUM_0
+    WHERE
+      T2.AllCnt > 3 --- TO SKIP SOME NEW SUPPLIERS
+    ORDER BY 
+    <choose>
+      <when test=' Sort == "ASC" '>
+       OTD ASC
+      </when>
+      <when test=' Sort == "DESC" '>
+        OTD DESC
+      </when>
+      <otherwise>
+        OTD DESC
+      </otherwise>
+    </choose>
+    OFFSET 0 ROWS
+    FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findSupplierQPY" resultType="com.da.sageassistantserver.model.SupplierQPY">
+  WITH 
+  T0 AS ( --- DELIVERY
+   SELECT DISTINCT
+     SDELIVERYD.SDHNUM_0,
+     SDELIVERYD.SDDLIN_0,
+     SDELIVERYD.STOFCY_0, 
+     SDELIVERYD.YSOH_PJT_0,
+     SDELIVERYD.SHIDAT_0,
+     PORDER.BPSNUM_0
+   FROM 
+     EXPLOIT.SDELIVERYD SDELIVERYD
+   INNER JOIN EXPLOIT.PORDERP PORDERP
+     ON SDELIVERYD.YSOH_PJT_0 = PORDERP.PJT_0
+        AND SDELIVERYD.STOFCY_0 = PORDERP.PRHFCY_0
+        AND SDELIVERYD.SHIDAT_0 BETWEEN CONVERT(datetime, #{DateFrom}, 120) AND CONVERT(datetime, #{DateTo}, 120)
+        <choose>
+        <when test=' Site == "ALL" '>
+        </when>
+        <when test=' Site == "CHINA" '>
+          AND SDELIVERYD.STOFCY_0 IN ('ZHU','HKG','YSH')
+        </when>
+        <otherwise>
+          AND SDELIVERYD.STOFCY_0 = #{Site}
+        </otherwise>
+        </choose>
+    INNER JOIN EXPLOIT.PORDER PORDER
+      ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+      <if test=' SupplierCode != "ALL" '>
+      AND PORDER.BPSNUM_0 = #{SupplierCode}
+      </if>
+    INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+      ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+        <choose>
+        <when test=' SupplierType ==  "ALL" '>
+        </when>
+        <when test=' SupplierType ==  "MAIN" '>
+          AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+        </when>
+        <when test=' SupplierType ==  "OTHERS" '>
+          AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+        </when>
+        <otherwise>
+        </otherwise>
+        </choose>
+  ),
+  T1 AS ( --- DELEVERY WITH NC
+  SELECT
+     T0.SDHNUM_0,
+     T0.SDDLIN_0,
+     T0.YSOH_PJT_0,
+     T0.STOFCY_0,
+     T0.SHIDAT_0,
+     SERREQUEST.YRNCBPS_0,
+     SERREQUEST.SRENUM_0,
+     SERREQUEST.YSRE_DATNC_0,
+     SERREQUEST.YSRE_DATNC_1,
+     SERREQUEST.YSRE_DATNC_2,
+     SERREQUEST.YSRE_DATNC_3,
+     SERREQUEST.YSRE_DATNC_4,
+     SERREQUEST.YSRE_DATNC_5,
+     SERREQUEST.YSRE_DATNC_6,
+     SERREQUEST.YSRE_DATNC_7,
+     SERREQUEST.YSRE_DATNC_8,
+     SERREQUEST.YSRE_DATNC_9,
+     SERREQUEST.YSRE_DATNC_10,
+     SERREQUEST.YSRE_DATNC_11
+   FROM 
+     T0 
+   LEFT JOIN EXPLOIT.SERREQUEST SERREQUEST
+     ON T0.STOFCY_0 = SERREQUEST.SALFCY_0
+       AND T0.YSOH_PJT_0 = SERREQUEST.YORIPJT_0
+       AND T0.BPSNUM_0 = SERREQUEST.YRNCBPS_0
+      --- ONLY RCL[Customer Claim], REN[NC entry], RNC[NC internal], RFN[NC final]
+       AND SERREQUEST.YSRE_CATEG_0 IN ('RCL','RNC','REN','RFN')
+  ),
+  T2 AS ( --- DELEVERY WITH NC UNPIVOT
+  SELECT DISTINCT
+     SDHNUM_0,
+     SDDLIN_0,
+     YSOH_PJT_0,
+     STOFCY_0,
+     SHIDAT_0,
+     YRNCBPS_0,
+     SRENUM_0,
+     NCDAT
+  FROM T1
+  UNPIVOT
+      (
+       NCDAT FOR NCDATCOL IN (
+         YSRE_DATNC_0,
+         YSRE_DATNC_1,
+         YSRE_DATNC_2,
+         YSRE_DATNC_3,
+         YSRE_DATNC_4,
+         YSRE_DATNC_5,
+         YSRE_DATNC_6,
+         YSRE_DATNC_7,
+         YSRE_DATNC_8,
+         YSRE_DATNC_9,
+         YSRE_DATNC_10,
+         YSRE_DATNC_11
+         )
+      ) P0
+  ),
+  T3 AS (--- DELEVERY WITH NCDAT
+    --- BPS WITH NO NCDAT
+    SELECT DISTINCT
+        T0.SDHNUM_0,
+        T0.SDDLIN_0,
+        T0.YSOH_PJT_0,
+        T0.STOFCY_0,
+        T0.SHIDAT_0,
+        T0.BPSNUM_0 AS YRNCBPS_0,
+        T1.SRENUM_0,
+        NULL AS NCDAT
+      FROM T0
+      LEFT JOIN T1
+          ON T0.YSOH_PJT_0 = T1.YSOH_PJT_0
+            AND T0.BPSNUM_0 = T1.YRNCBPS_0
+            AND T0.STOFCY_0 = T1.STOFCY_0
+      WHERE
+        T1.SRENUM_0 IS NULL
+
+     UNION
+     
+     --- BPS WITH TRUE NCDAT
+     SELECT DISTINCT
+        T2.SDHNUM_0,
+        T2.SDDLIN_0,
+        T2.YSOH_PJT_0,
+        T2.STOFCY_0,
+        T2.SHIDAT_0,
+        T2.YRNCBPS_0,
+        T2.SRENUM_0,
+        T2.NCDAT
+      FROM T2
+      WHERE
+        T2.NCDAT != '1753-01-01'
+  ),
+  T4 AS ( --- DELEVERY WITH NCDATE COUNT
+    SELECT DISTINCT
+      T3.SDHNUM_0,
+      T3.SDDLIN_0,
+      T3.STOFCY_0,
+      T3.YRNCBPS_0,
+      T3.YSOH_PJT_0,
+      T3.SHIDAT_0,
+      COUNT(T3.NCDAT) OVER(PARTITION BY T3.STOFCY_0, T3.YSOH_PJT_0) AS NcCntByProject
+    FROM T3
+  ),
+  T5 AS (
+  SELECT DISTINCT
+      T4.STOFCY_0 AS Site,
+      <if test=' SupplierCode != "ALL" '>
+      T4.YRNCBPS_0 AS SupplierCode,
+      </if>
+      --- T4.YSOH_PJT_0 AS ProjectNO,
+      <choose>
+      <when test=' Interval == "Month" and SupplierCode != "ALL" '>
+      FORMAT(YEAR(T4.SHIDAT_0), '0000') + '-' + FORMAT(MONTH(T4.SHIDAT_0), '00') AS Target,
+      T4.NcCntByProject,
+      COUNT(1) OVER(PARTITION BY T4.STOFCY_0, T4.YRNCBPS_0, T4.NcCntByProject, FORMAT(YEAR(T4.SHIDAT_0), '0000') + '-' + FORMAT(MONTH(T4.SHIDAT_0), '00') ) AS SameCnt,
+      COUNT(T4.YSOH_PJT_0) OVER(PARTITION BY T4.STOFCY_0, T4.YRNCBPS_0, FORMAT(YEAR(T4.SHIDAT_0), '0000') + '-' +  FORMAT(MONTH(T4.SHIDAT_0), '00')) AS AllCnt
+      </when>
+      <when test=' Interval == "Month" and SupplierCode == "ALL" '>
+      FORMAT(YEAR(T4.SHIDAT_0), '0000') + '-' + FORMAT(MONTH(T4.SHIDAT_0), '00') AS Target,
+      T4.NcCntByProject,
+      COUNT(1) OVER(PARTITION BY T4.STOFCY_0, T4.NcCntByProject, FORMAT(YEAR(T4.SHIDAT_0), '0000') + '-' + FORMAT(MONTH(T4.SHIDAT_0), '00') ) AS SameCnt,
+      COUNT(T4.YSOH_PJT_0) OVER(PARTITION BY T4.STOFCY_0, FORMAT(YEAR(T4.SHIDAT_0), '0000') + '-' +  FORMAT(MONTH(T4.SHIDAT_0), '00')) AS AllCnt
+      </when>
+      <when test=' Interval == "Year" and SupplierCode != "ALL" '>
+      FORMAT(YEAR(T4.SHIDAT_0), '0000') AS Target,
+      T4.NcCntByProject,
+      COUNT(1) OVER(PARTITION BY T4.STOFCY_0, T3.YRNCBPS_0, T4.NcCntByProject, FORMAT(YEAR(T4.SHIDAT_0), '0000') ) AS SameCnt,
+      COUNT(T4.YSOH_PJT_0) OVER(PARTITION BY T4.STOFCY_0, T4.YRNCBPS_0, FORMAT(YEAR(T4.SHIDAT_0), '0000') ) AS AllCnt
+      </when>
+      <when test=' Interval == "Year" and SupplierCode == "ALL" '>
+      FORMAT(YEAR(T4.SHIDAT_0), '0000') AS Target,
+      T4.NcCntByProject,
+      COUNT(1) OVER(PARTITION BY T4.STOFCY_0, T4.NcCntByProject, FORMAT(YEAR(T4.SHIDAT_0), '0000') ) AS SameCnt,
+      COUNT(T4.YSOH_PJT_0) OVER(PARTITION BY T4.STOFCY_0, FORMAT(YEAR(T4.SHIDAT_0), '0000') ) AS AllCnt
+      </when>
+      <otherwise>
+      FORMAT(YEAR(T4.SHIDAT_0), '0000') AS Target,
+      T4.NcCntByProject,
+      COUNT(1) OVER(PARTITION BY T4.STOFCY_0, T4.NcCntByProject, FORMAT(YEAR(T4.SHIDAT_0), '0000') ) AS SameCnt,
+      COUNT(T4.YSOH_PJT_0) OVER(PARTITION BY T4.STOFCY_0, FORMAT(YEAR(T4.SHIDAT_0), '0000') ) AS AllCnt
+      </otherwise>
+    </choose>
+    FROM T4
+  )
+
+SELECT DISTINCT
+  T5.Site,
+  <if test=' SupplierCode != "ALL" '>
+  T5.SupplierCode,
+  </if>
+  T5.Target,
+  T5.NcCntByProject,
+  T5.SameCnt,
+  T5.AllCnt,
+  ROUND(T5.SameCnt*100.0/T5.AllCnt,2) AS PCT 
+FROM T5
+ORDER BY
+  T5.Site ASC,
+  T5.Target ASC,
+  T5.NcCntByProject ASC 
+  </select>
+  <select id="findSupplierQPYTop" resultType="com.da.sageassistantserver.model.SupplierQPYTop">
+  WITH 
+  T0 AS ( --- DELIVERY
+   SELECT DISTINCT
+     SDELIVERYD.SDHNUM_0,
+     SDELIVERYD.SDDLIN_0,
+     SDELIVERYD.STOFCY_0, 
+     SDELIVERYD.YSOH_PJT_0,
+     SDELIVERYD.SHIDAT_0,
+     PORDER.BPSNUM_0
+   FROM 
+     EXPLOIT.SDELIVERYD SDELIVERYD
+   INNER JOIN EXPLOIT.PORDERP PORDERP
+     ON SDELIVERYD.YSOH_PJT_0 = PORDERP.PJT_0
+        AND SDELIVERYD.STOFCY_0 = PORDERP.PRHFCY_0
+        AND SDELIVERYD.SHIDAT_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+        <choose>
+        <when test=' Site == "ALL" '>
+        </when>
+        <when test=' Site == "CHINA" '>
+          AND SDELIVERYD.STOFCY_0 IN ('ZHU','HKG','YSH')
+        </when>
+        <otherwise>
+          AND SDELIVERYD.STOFCY_0 = #{Site}
+        </otherwise>
+        </choose>
+    INNER JOIN EXPLOIT.PORDER PORDER
+      ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+      ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+        <choose>
+        <when test=' SupplierType ==  "ALL" '>
+        </when>
+        <when test=' SupplierType ==  "MAIN" '>
+          AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+        </when>
+        <when test=' SupplierType ==  "OTHERS" '>
+          AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+        </when>
+        <otherwise>
+        </otherwise>
+        </choose>
+  ),
+  T1 AS ( --- DELEVERY WITH NC
+  SELECT
+     T0.SDHNUM_0,
+     T0.SDDLIN_0,
+     T0.YSOH_PJT_0,
+     T0.STOFCY_0,
+     T0.SHIDAT_0,
+     SERREQUEST.YRNCBPS_0,
+     SERREQUEST.SRENUM_0,
+     SERREQUEST.YSRE_DATNC_0,
+     SERREQUEST.YSRE_DATNC_1,
+     SERREQUEST.YSRE_DATNC_2,
+     SERREQUEST.YSRE_DATNC_3,
+     SERREQUEST.YSRE_DATNC_4,
+     SERREQUEST.YSRE_DATNC_5,
+     SERREQUEST.YSRE_DATNC_6,
+     SERREQUEST.YSRE_DATNC_7,
+     SERREQUEST.YSRE_DATNC_8,
+     SERREQUEST.YSRE_DATNC_9,
+     SERREQUEST.YSRE_DATNC_10,
+     SERREQUEST.YSRE_DATNC_11
+   FROM 
+     T0 
+   LEFT JOIN EXPLOIT.SERREQUEST SERREQUEST
+     ON T0.STOFCY_0 = SERREQUEST.SALFCY_0
+       AND T0.YSOH_PJT_0 = SERREQUEST.YORIPJT_0
+       AND T0.BPSNUM_0 = SERREQUEST.YRNCBPS_0
+      --- ONLY RCL[Customer Claim], REN[NC entry], RNC[NC internal], RFN[NC final]
+       AND SERREQUEST.YSRE_CATEG_0 IN ('RCL','RNC','REN','RFN')
+  ),
+  T2 AS ( --- DELEVERY WITH NC UNPIVOT
+  SELECT DISTINCT
+     SDHNUM_0,
+     SDDLIN_0,
+     YSOH_PJT_0,
+     STOFCY_0,
+     SHIDAT_0,
+     YRNCBPS_0,
+     SRENUM_0,
+     NCDAT
+  FROM T1
+  UNPIVOT
+      (
+       NCDAT FOR NCDATCOL IN (
+         YSRE_DATNC_0,
+         YSRE_DATNC_1,
+         YSRE_DATNC_2,
+         YSRE_DATNC_3,
+         YSRE_DATNC_4,
+         YSRE_DATNC_5,
+         YSRE_DATNC_6,
+         YSRE_DATNC_7,
+         YSRE_DATNC_8,
+         YSRE_DATNC_9,
+         YSRE_DATNC_10,
+         YSRE_DATNC_11
+         )
+      ) P0
+  ),
+  T3 AS ( --- DELEVERY WITH NCDAT
+    --- BPS WITH NO NCDAT
+    SELECT DISTINCT
+        T0.SDHNUM_0,
+        T0.SDDLIN_0,
+        T0.YSOH_PJT_0,
+        T0.STOFCY_0,
+        T0.SHIDAT_0,
+        T0.BPSNUM_0 AS YRNCBPS_0,
+        T1.SRENUM_0,
+        NULL AS NCDAT
+      FROM T0
+      LEFT JOIN T1
+          ON T0.YSOH_PJT_0 = T1.YSOH_PJT_0
+            AND T0.BPSNUM_0 = T1.YRNCBPS_0
+            AND T0.STOFCY_0 = T1.STOFCY_0
+      WHERE
+        T1.SRENUM_0 IS NULL
+        
+     UNION
+
+     --- BPS WITH TRUE NCDAT
+     SELECT DISTINCT
+        T2.SDHNUM_0,
+        T2.SDDLIN_0,
+        T2.YSOH_PJT_0,
+        T2.STOFCY_0,
+        T2.SHIDAT_0,
+        T2.YRNCBPS_0,
+        T2.SRENUM_0,
+        T2.NCDAT
+      FROM T2
+      WHERE
+        T2.NCDAT != '1753-01-01'
+  ),
+  T4 AS ( --- DELEVERY WITH NCDATE COUNT
+    SELECT DISTINCT
+      T3.SDHNUM_0,
+      T3.SDDLIN_0,
+      T3.STOFCY_0,
+      T3.YRNCBPS_0,
+      T3.YSOH_PJT_0,
+      T3.SHIDAT_0,
+      COUNT(T3.NCDAT) OVER(PARTITION BY T3.STOFCY_0,T3.YSOH_PJT_0, T3.YRNCBPS_0) AS NcCntByProject
+    FROM T3
+  ),
+  T5 AS (
+    SELECT DISTINCT
+      T4.STOFCY_0 AS Site,
+      T4.YRNCBPS_0 AS SupplierCode,
+      T4.NcCntByProject,
+      COUNT(1) OVER(PARTITION BY T4.STOFCY_0, T4.YRNCBPS_0, T4.NcCntByProject) AS SameCnt,
+      COUNT(T4.YSOH_PJT_0) OVER(PARTITION BY T4.STOFCY_0, T4.YRNCBPS_0) AS ProjectCnt
+    FROM T4
+  )
+        
+SELECT
+  T5.Site,
+  T5.SupplierCode,
+  BPSUPPLIER.BPSSHO_0 AS SupplierName,
+  T5.NcCntByProject,
+  T5.SameCnt,
+  T5.ProjectCnt,
+  ROUND(T5.SameCnt*100.0/T5.ProjectCnt,2) AS QPY 
+FROM T5
+INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+     ON T5.SupplierCode = BPSUPPLIER.BPSNUM_0
+WHERE 
+  T5.NcCntByProject = 0
+  AND T5.ProjectCnt > 3   ---- TO SKIP SOME NEW SUPPLIER
+ORDER BY
+  T5.Site ASC,
+  <choose>
+    <when test=' Sort == "ASC" '>
+     QPY ASC,
+    </when>
+    <when test=' Sort == "DESC" '>
+      QPY DESC,
+    </when>
+    <otherwise>
+      QPY DESC,
+    </otherwise>
+  </choose>
+  T5.ProjectCnt DESC
+
+  OFFSET 0 ROWS
+  FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findSupplierNCSummary" resultType="com.da.sageassistantserver.model.SupplierNCSummary">
+  WITH 
+  T0 AS (
+     SELECT
+     SALFCY_0,
+     YRNCBPS_0,
+     SRENUM_0,
+     YSRE_DATNC_0,
+     YSRE_DATNC_1,
+     YSRE_DATNC_2,
+     YSRE_DATNC_3,
+     YSRE_DATNC_4,
+     YSRE_DATNC_5,
+     YSRE_DATNC_6,
+     YSRE_DATNC_7,
+     YSRE_DATNC_8,
+     YSRE_DATNC_9,
+     YSRE_DATNC_10,
+     YSRE_DATNC_11,
+     YSRE_CATNC_0,
+     YSRE_CATNC_1,
+     YSRE_CATNC_2,
+     YSRE_CATNC_3,
+     YSRE_CATNC_4,
+     YSRE_CATNC_5,
+     YSRE_CATNC_6,
+     YSRE_CATNC_7,
+     YSRE_CATNC_8,
+     YSRE_CATNC_9,
+     YSRE_CATNC_10,
+     YSRE_CATNC_11
+   FROM 
+     EXPLOIT.SERREQUEST
+   INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+      ON BPSUPPLIER.BPSNUM_0 = SERREQUEST.YRNCBPS_0
+        <choose>
+        <when test=' SupplierType ==  "ALL" '>
+        </when>
+        <when test=' SupplierType ==  "MAIN" '>
+          AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+        </when>
+        <when test=' SupplierType ==  "OTHERS" '>
+          AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+        </when>
+        <otherwise>
+        </otherwise>
+        </choose>
+   WHERE 
+     --- ONLY Customer Claim, NC entry, NC internal, NC final
+     YSRE_CATEG_0 IN ('RCL','RNC','REN', 'RFN')
+     <if test=' SupplierCode != "ALL" '>
+     AND YRNCBPS_0 = #{SupplierCode}
+     </if>
+     AND (
+       YSRE_DATNC_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_1 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_2 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_3 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_4 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_5 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_6 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_7 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_8 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_9 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_10 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_11 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+     )
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+  ),
+  T1 AS ( 
+  SELECT 
+     ROW_NUMBER() OVER (ORDER BY SRENUM_0 ASC) AS ItemNO,
+     SALFCY_0,
+     YRNCBPS_0,
+     SRENUM_0,
+     NCDAT
+  FROM T0
+  UNPIVOT
+      (
+       NCDAT FOR NCDATCOL IN (
+         YSRE_DATNC_0,
+         YSRE_DATNC_1,
+         YSRE_DATNC_2,
+         YSRE_DATNC_3,
+         YSRE_DATNC_4,
+         YSRE_DATNC_5,
+         YSRE_DATNC_6,
+         YSRE_DATNC_7,
+         YSRE_DATNC_8,
+         YSRE_DATNC_9,
+         YSRE_DATNC_10,
+         YSRE_DATNC_11
+         )
+      ) P0
+  ),
+  T2 AS ( 
+  SELECT 
+     ROW_NUMBER() OVER (ORDER BY SRENUM_0 ASC) AS ItemNO,
+     SALFCY_0,
+     YRNCBPS_0,
+     SRENUM_0,
+     NCCAT
+  FROM T0
+  UNPIVOT
+       (
+       NCCAT FOR NCCATCOL IN (
+         YSRE_CATNC_0,
+         YSRE_CATNC_1,
+         YSRE_CATNC_2,
+         YSRE_CATNC_3,
+         YSRE_CATNC_4,
+         YSRE_CATNC_5,
+         YSRE_CATNC_6,
+         YSRE_CATNC_7,
+         YSRE_CATNC_8,
+         YSRE_CATNC_9,
+         YSRE_CATNC_10,
+         YSRE_CATNC_11
+         )
+      ) P1
+  ),
+  T5 AS (
+      SELECT 
+        ROW_NUMBER() OVER (ORDER BY T1.ItemNO ASC) AS ItemNO,
+        T1.SALFCY_0,
+        T1.YRNCBPS_0,
+        T1.SRENUM_0,
+        T1.NCDAT,
+        T2.NCCAT
+      FROM T1
+      INNER JOIN T2
+          ON T1.SRENUM_0 = T2.SRENUM_0 
+             AND T1.ItemNO = T2.ItemNO
+      WHERE
+        T1.NCDAT != '1753-01-01'
+        AND T2.NCCAT != ' '
+  ),
+T6 AS (
+  SELECT DISTINCT
+    T5.SALFCY_0 AS Site,
+    <if test=' SupplierCode != "ALL" '>
+    T5.YRNCBPS_0 AS SupplierCode,
+    </if>
+    T5.NCCAT,
+    <choose>
+      <when test=' Interval == "Month" and SupplierCode != "ALL" '>
+      FORMAT(Year(T5.NCDAT), '0000') + '-' + FORMAT(MONTH(T5.NCDAT), '00') AS Target,
+      COUNT(1) OVER(PARTITION BY T5.SALFCY_0, T5.YRNCBPS_0, T5.NCCAT, FORMAT(YEAR(T5.NCDAT), '0000') + '-' +  FORMAT(MONTH(T5.NCDAT), '00')) AS CatCnt,  
+      COUNT(1) OVER(PARTITION BY FORMAT(YEAR(T5.NCDAT), '0000') + '-' +  FORMAT(MONTH(T5.NCDAT), '00')) AS AllCnt
+      </when>
+      <when test=' Interval == "Month" and SupplierCode == "ALL" '>
+      FORMAT(Year(T5.NCDAT), '0000') + '-' + FORMAT(MONTH(T5.NCDAT), '00') AS Target,
+      COUNT(1) OVER(PARTITION BY T5.SALFCY_0, T5.NCCAT, FORMAT(YEAR(T5.NCDAT), '0000') + '-' +  FORMAT(MONTH(T5.NCDAT), '00')) AS CatCnt,  
+      COUNT(1) OVER(PARTITION BY FORMAT(YEAR(T5.NCDAT), '0000') + '-' +  FORMAT(MONTH(T5.NCDAT), '00')) AS AllCnt
+      </when>
+      <when test=' Interval == "Year" and SupplierCode != "ALL" '>
+      FORMAT(Year(T5.NCDAT), '0000') AS Target,
+      COUNT(1) OVER(PARTITION BY T5.SALFCY_0, T5.YRNCBPS_0, T5.NCCAT, FORMAT(YEAR(T5.NCDAT), '0000')) AS CatCnt,
+      COUNT(1) OVER(PARTITION BY FORMAT(YEAR(T5.NCDAT), '0000')) AS AllCnt
+      </when>
+      <when test=' Interval == "Year" and SupplierCode == "ALL" '>
+      FORMAT(Year(T5.NCDAT), '0000') AS Target,
+      COUNT(1) OVER(PARTITION BY T5.SALFCY_0, T5.NCCAT, FORMAT(YEAR(T5.NCDAT), '0000')) AS CatCnt,
+      COUNT(1) OVER(PARTITION BY FORMAT(YEAR(T5.NCDAT), '0000')) AS AllCnt
+      </when>
+      <otherwise>
+      FORMAT(Year(T5.NCDAT), '0000') AS Target,
+      COUNT(1) OVER(PARTITION BY T5.SALFCY_0, T5.NCCAT, FORMAT(YEAR(T5.NCDAT), '0000')) AS CatCnt,
+      COUNT(1) OVER(PARTITION BY FORMAT(YEAR(T5.NCDAT), '0000')) AS AllCnt
+      </otherwise>
+    </choose>
+
+  FROM T5
+)
+
+SELECT 
+  T6.Site,
+  <if test=' SupplierCode != "ALL" '>
+  T6.SupplierCode,
+  </if>
+  CASE
+      WHEN T6.NCCAT='C' THEN 'Components'
+      WHEN T6.NCCAT='CP' THEN 'Design'
+      WHEN T6.NCCAT='D' THEN 'Dimensional'
+      WHEN T6.NCCAT='DOC' THEN 'Documentary'
+      WHEN T6.NCCAT='E' THEN 'Packaging'
+      WHEN T6.NCCAT='F' THEN 'Finition'
+      WHEN T6.NCCAT='M' THEN 'Raw material'
+      WHEN T6.NCCAT='MQ' THEN 'Marking'
+      WHEN T6.NCCAT='S' THEN 'Welding'
+      WHEN T6.NCCAT='T' THEN 'Test/Calibration'
+      WHEN T6.NCCAT='TR' THEN 'Transport'
+      WHEN T6.NCCAT='V' THEN 'Visual'
+      ELSE 'UNK' 
+  END AS NCCAT,
+  T6.Target,
+  T6.CatCnt,
+  T6.AllCnt,
+  ROUND(T6.CatCnt*100.0/T6.AllCnt,2) AS PCT 
+FROM T6
+ORDER BY
+  T6.Site ASC,
+  T6.Target ASC,
+  T6.CatCnt DESC
+  </select>
+  <select id="findSupplierOrdersCnt" resultType="java.lang.Integer">
+  WITH T0 AS (
+         SELECT DISTINCT 
+          PORDERQ.PRHFCY_0 AS Site,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          PORDERP.POHNUM_0 AS PurchaseNO,
+          PORDERP.POPLIN_0 AS PurchaseLine
+      FROM  EXPLOIT.PORDERP AS PORDERP
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+            ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
+                AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER
+            ON PORDERP.POHNUM_0=PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+              ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+      WHERE 
+      PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom}, 120) AND CONVERT(datetime, #{DateTo}, 120)
+      <if test=' SupplierCode != "ALL" '>
+      AND PORDER.BPSNUM_0 = #{SupplierCode}
+      </if>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      </when>
+      <when test=' Site ==  "CHINA" '>
+        AND PORDERQ.PRHFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+        AND PORDERQ.PRHFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' SupplierType ==  "ALL" '>
+      </when>
+      <when test=' SupplierType ==  "MAIN" '>
+        AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+      </when>
+      <when test=' SupplierType ==  "OTHERS" '>
+        AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+      </when>
+      <otherwise>
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=" OrderStatus =='ALL' ">
+      </when>
+      <when test=" OrderStatus =='OPEN' ">
+        AND PORDERQ.LINCLEFLG_0 = 1
+      </when>
+      <when test=" OrderStatus =='CLOSED' ">
+        AND PORDERQ.LINCLEFLG_0 = 2
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+  
+    )
+
+  SELECT 
+   COUNT(1)
+  FROM T0
+  </select>
+  <select id="findSupplierOrders" resultType="com.da.sageassistantserver.model.SupplierOrder">
+  WITH T0 AS (
+      SELECT DISTINCT
+          PORDERQ.PRHFCY_0 AS Site,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          PORDERP.POHNUM_0 AS PurchaseNO,
+          PORDERP.POPLIN_0 AS PurchaseLine,
+          PORDERP.PJT_0 AS ProjectNO,
+          PORDERP.ITMREF_0 AS PN,
+          PORDERP.ITMDES_0 AS Description, 
+          PORDERQ.QTYSTU_0 AS Qty,
+          PORDERQ.LINATIAMT_0 AS Price,
+          PORDERQ.NETCUR_0 AS Currency,
+          PORDERQ.LINAMTCPR_0 + PORDERQ.AMTTAXLIN1_0 + PORDERQ.AMTTAXLIN2_0 + PORDERQ.AMTTAXLIN3_0 AS LocalPrice,
+          PORDERQ.CPRCUR_0 AS LocalCurrency,
+          PORDER.ORDDAT_0 AS OrderDate,
+          IIF(PORDERQ.LINOCNDAT_0 = '1753-01-01', PORDERQ.EXTRCPDAT_0, PORDERQ.LINOCNDAT_0) AS AckDate,
+          PORDERQ.EXTRCPDAT_0 AS ExpectDate,
+          MAX(PRECEIPTD.PTHNUM_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS LastReceiveNO,
+          MAX(PRECEIPTD.RCPDAT_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS LastReceiveDate,
+          SUM(PRECEIPTD.QTYSTU_0) OVER(PARTITION BY PORDERP.POHNUM_0,PORDERP.POPLIN_0) AS TotalReceiveQty
+      FROM  EXPLOIT.PORDERP AS PORDERP
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+              ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
+                AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER
+              ON PORDERP.POHNUM_0=PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+              ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+          LEFT JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
+              ON PORDERP.POHNUM_0 = PRECEIPTD.POHNUM_0 AND PORDERP.POPLIN_0 = PRECEIPTD.POPLIN_0
+      WHERE
+      PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+      <if test=' SupplierCode != "ALL" '>
+      AND PORDER.BPSNUM_0 = #{SupplierCode}
+      </if>
+
+      <choose>
+      <when test=' Site == "ALL" '>
+      </when>
+      <when test=' Site == "CHINA" '>
+        AND PORDERQ.PRHFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+        AND PORDERQ.PRHFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' SupplierType ==  "ALL" '>
+      </when>
+      <when test=' SupplierType ==  "MAIN" '>
+        AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+      </when>
+      <when test=' SupplierType ==  "OTHERS" '>
+        AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+      </when>
+      <otherwise>
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test='  OrderStatus == "ALL" '>
+      </when>
+      <when test=' OrderStatus == "OPEN" '>
+        AND PORDERQ.LINCLEFLG_0 = 1
+      </when>
+      <when test=' OrderStatus == "CLOSED" '>
+        AND PORDERQ.LINCLEFLG_0 = 2
+      </when>
+      <otherwise>
+         AND 1=2 
+      </otherwise>
+      </choose>
+    )
+
+  SELECT DISTINCT
+    ROW_NUMBER() OVER (ORDER BY T0.OrderDate ASC) AS ItemNO,
+    T0.*,
+    IIF(T0.LastReceiveNO IS NULL, 
+        DATEDIFF(day, T0.AckDate, getDate()),
+        IIF(T0.TotalReceiveQty >= T0.Qty, 
+            DATEDIFF(day, T0.AckDate, T0.LastReceiveDate) ,
+            DATEDIFF(day, T0.AckDate, getDate())
+        )
+    )  AS DaysDelay
+  FROM T0  
+     ORDER BY ItemNO ASC
+     OFFSET #{Offset} ROWS
+     FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findSupplierNCHistoryCnt" resultType="java.lang.Integer">
+WITH 
+  T0 AS (
+  SELECT
+     SALFCY_0 AS Site,
+     YRNCBPS_0 AS SupplierCode,
+     SRENUM_0 AS NCNo,
+     YSREDAT_0 AS NCDate,
+     YORIPJT_0 AS ProjectCode
+   FROM 
+     EXPLOIT.SERREQUEST
+   INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+      ON BPSUPPLIER.BPSNUM_0 = SERREQUEST.YRNCBPS_0
+        <choose>
+        <when test=' SupplierType ==  "ALL" '>
+        </when>
+        <when test=' SupplierType ==  "MAIN" '>
+          AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+        </when>
+        <when test=' SupplierType ==  "OTHERS" '>
+          AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+        </when>
+        <otherwise>
+        </otherwise>
+        </choose>
+   WHERE 
+      --- ONLY Customer Claim, NC entry, NC internal, NC final
+      YSRE_CATEG_0 IN ('RCL','RNC','REN', 'RFN')
+
+     <if test=' SupplierCode != "ALL" '>
+     AND YRNCBPS_0 = #{SupplierCode}
+     </if>
+     AND (
+       YSRE_DATNC_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_1 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_2 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_3 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_4 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_5 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_6 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_7 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_8 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_9 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_10 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_11 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+     )
+
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+  )
+
+  SELECT 
+    COUNT(1) AS Cnt
+  FROM T0
+  </select>
+  <select id="findSupplierNCHistory" resultType="com.da.sageassistantserver.model.SupplierNCHistory">
+  WITH 
+  T0 AS (
+    SELECT 
+       SALFCY_0 AS Site,
+       YRNCBPS_0 AS SupplierCode,
+       SRENUM_0 AS NCNo,
+       YSREDAT_0 AS NCDate,
+       YORIPJT_0 AS ProjectNO,
+       SRETTR_0 AS PN,
+       SREDES_0 AS Description,
+       IIF(YSRE_DATNC_0 = '1753-01-01', NULL, YSRE_DATNC_0) AS NCDAT0,
+       IIF(YSRE_DATNC_1 = '1753-01-01', NULL, YSRE_DATNC_1) AS NCDAT1,
+       IIF(YSRE_DATNC_2 = '1753-01-01', NULL, YSRE_DATNC_2) AS NCDAT2,
+       IIF(YSRE_DATNC_3 = '1753-01-01', NULL, YSRE_DATNC_3) AS NCDAT3,
+       IIF(YSRE_DATNC_4 = '1753-01-01', NULL, YSRE_DATNC_4) AS NCDAT4,
+       IIF(YSRE_DATNC_5 = '1753-01-01', NULL, YSRE_DATNC_5) AS NCDAT5,
+       IIF(YSRE_DATNC_6 = '1753-01-01', NULL, YSRE_DATNC_6) AS NCDAT6,
+       IIF(YSRE_DATNC_7 = '1753-01-01', NULL, YSRE_DATNC_7) AS NCDAT7,
+       IIF(YSRE_DATNC_8 = '1753-01-01', NULL, YSRE_DATNC_8) AS NCDAT8,
+       IIF(YSRE_DATNC_9 = '1753-01-01', NULL, YSRE_DATNC_9) AS NCDAT9,
+       IIF(YSRE_DATNC_10 = '1753-01-01', NULL, YSRE_DATNC_10) AS NCDAT10,
+       IIF(YSRE_DATNC_11 = '1753-01-01', NULL, YSRE_DATNC_11) AS NCDAT11,
+       IIF(YSRE_CATNC_0 = ' ', NULL, YSRE_CATNC_0) AS NCCAT0,
+       IIF(YSRE_CATNC_1 = ' ', NULL, YSRE_CATNC_1) AS NCCAT1,
+       IIF(YSRE_CATNC_2 = ' ', NULL, YSRE_CATNC_2) AS NCCAT2,
+       IIF(YSRE_CATNC_3 = ' ', NULL, YSRE_CATNC_3) AS NCCAT3,
+       IIF(YSRE_CATNC_4 = ' ', NULL, YSRE_CATNC_4) AS NCCAT4,
+       IIF(YSRE_CATNC_5 = ' ', NULL, YSRE_CATNC_5) AS NCCAT5,
+       IIF(YSRE_CATNC_6 = ' ', NULL, YSRE_CATNC_6) AS NCCAT6,
+       IIF(YSRE_CATNC_7 = ' ', NULL, YSRE_CATNC_7) AS NCCAT7,
+       IIF(YSRE_CATNC_8 = ' ', NULL, YSRE_CATNC_8) AS NCCAT8,
+       IIF(YSRE_CATNC_9 = ' ', NULL, YSRE_CATNC_9) AS NCCAT9,
+       IIF(YSRE_CATNC_10 = ' ', NULL, YSRE_CATNC_10) AS NCCAT10,
+       IIF(YSRE_CATNC_11 = ' ', NULL, YSRE_CATNC_11) AS NCCAT11,
+       IIF(YSRE_TYPNC_0 = ' ', NULL, YSRE_TYPNC_0) AS NCTYP0,
+       IIF(YSRE_TYPNC_1 = ' ', NULL, YSRE_TYPNC_1) AS NCTYP1,
+       IIF(YSRE_TYPNC_2 = ' ', NULL, YSRE_TYPNC_2) AS NCTYP2,
+       IIF(YSRE_TYPNC_3 = ' ', NULL, YSRE_TYPNC_3) AS NCTYP3,
+       IIF(YSRE_TYPNC_4 = ' ', NULL, YSRE_TYPNC_4) AS NCTYP4,
+       IIF(YSRE_TYPNC_5 = ' ', NULL, YSRE_TYPNC_5) AS NCTYP5,
+       IIF(YSRE_TYPNC_6 = ' ', NULL, YSRE_TYPNC_6) AS NCTYP6,
+       IIF(YSRE_TYPNC_7 = ' ', NULL, YSRE_TYPNC_7) AS NCTYP7,
+       IIF(YSRE_TYPNC_8 = ' ', NULL, YSRE_TYPNC_8) AS NCTYP8,
+       IIF(YSRE_TYPNC_9 = ' ', NULL, YSRE_TYPNC_9) AS NCTYP9,
+       IIF(YSRE_TYPNC_10 = ' ', NULL, YSRE_TYPNC_10) AS NCTYP10,
+       IIF(YSRE_TYPNC_11 = ' ', NULL, YSRE_TYPNC_11) AS NCTYP11,
+       CASE
+           WHEN YSRE_CRIT_0=2 THEN 'Minor'
+           WHEN YSRE_CRIT_0=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT0,
+       CASE
+           WHEN YSRE_CRIT_1=2 THEN 'Minor'
+           WHEN YSRE_CRIT_1=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT1,
+       CASE
+           WHEN YSRE_CRIT_2=2 THEN 'Minor'
+           WHEN YSRE_CRIT_2=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT2,
+       CASE
+           WHEN YSRE_CRIT_3=2 THEN 'Minor'
+           WHEN YSRE_CRIT_3=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT3,
+       CASE
+           WHEN YSRE_CRIT_4=2 THEN 'Minor'
+           WHEN YSRE_CRIT_4=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT4,
+       CASE
+           WHEN YSRE_CRIT_5=2 THEN 'Minor'
+           WHEN YSRE_CRIT_5=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT5,
+       CASE
+           WHEN YSRE_CRIT_6=2 THEN 'Minor'
+           WHEN YSRE_CRIT_6=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT6,
+       CASE
+           WHEN YSRE_CRIT_7=2 THEN 'Minor'
+           WHEN YSRE_CRIT_7=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT7,
+       CASE
+           WHEN YSRE_CRIT_8=2 THEN 'Minor'
+           WHEN YSRE_CRIT_8=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT8,
+       CASE
+           WHEN YSRE_CRIT_9=2 THEN 'Minor'
+           WHEN YSRE_CRIT_9=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT9,
+       CASE
+           WHEN YSRE_CRIT_10=2 THEN 'Minor'
+           WHEN YSRE_CRIT_10=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT10,
+       CASE
+           WHEN YSRE_CRIT_11=2 THEN 'Minor'
+           WHEN YSRE_CRIT_11=3 THEN 'Major'
+           ELSE NULL
+       END AS NCCRIT11,
+       IIF(YSRE_DES_0 = ' ', NULL, YSRE_DES_0) AS NCDES0,
+       IIF(YSRE_DES_1 = ' ', NULL, YSRE_DES_1) AS NCDES1,
+       IIF(YSRE_DES_2 = ' ', NULL, YSRE_DES_2) AS NCDES2,
+       IIF(YSRE_DES_3 = ' ', NULL, YSRE_DES_3) AS NCDES3,
+       IIF(YSRE_DES_4 = ' ', NULL, YSRE_DES_4) AS NCDES4,
+       IIF(YSRE_DES_5 = ' ', NULL, YSRE_DES_5) AS NCDES5,
+       IIF(YSRE_DES_6 = ' ', NULL, YSRE_DES_6) AS NCDES6,
+       IIF(YSRE_DES_7 = ' ', NULL, YSRE_DES_7) AS NCDES7,
+       IIF(YSRE_DES_8 = ' ', NULL, YSRE_DES_8) AS NCDES8,
+       IIF(YSRE_DES_9 = ' ', NULL, YSRE_DES_9) AS NCDES9,
+       IIF(YSRE_DES_10 = ' ', NULL, YSRE_DES_10) AS NCDES10,
+       IIF(YSRE_DES_11 = ' ', NULL, YSRE_DES_11) AS NCDES11,
+       IIF(YSRE_USRNC_0 = ' ', NULL, YSRE_USRNC_0) AS CreatedBy0,
+       IIF(YSRE_USRNC_1 = ' ', NULL, YSRE_USRNC_1) AS CreatedBy1,
+       IIF(YSRE_USRNC_2 = ' ', NULL, YSRE_USRNC_2) AS CreatedBy2,
+       IIF(YSRE_USRNC_3 = ' ', NULL, YSRE_USRNC_3) AS CreatedBy3,
+       IIF(YSRE_USRNC_4 = ' ', NULL, YSRE_USRNC_4) AS CreatedBy4,
+       IIF(YSRE_USRNC_5 = ' ', NULL, YSRE_USRNC_5) AS CreatedBy5,
+       IIF(YSRE_USRNC_6 = ' ', NULL, YSRE_USRNC_6) AS CreatedBy6,
+       IIF(YSRE_USRNC_7 = ' ', NULL, YSRE_USRNC_7) AS CreatedBy7,
+       IIF(YSRE_USRNC_8 = ' ', NULL, YSRE_USRNC_8) AS CreatedBy8,
+       IIF(YSRE_USRNC_9 = ' ', NULL, YSRE_USRNC_9) AS CreatedBy9,
+       IIF(YSRE_USRNC_10 = ' ', NULL, YSRE_USRNC_10) AS CreatedBy10,
+       IIF(YSRE_USRNC_11 = ' ', NULL, YSRE_USRNC_11) AS CreatedBy11
+   FROM 
+     EXPLOIT.SERREQUEST
+   INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER
+      ON BPSUPPLIER.BPSNUM_0 = SERREQUEST.YRNCBPS_0
+        <choose>
+        <when test=' SupplierType ==  "ALL" '>
+        </when>
+        <when test=' SupplierType ==  "MAIN" '>
+          AND BPSUPPLIER.TSSCOD_0 IN ('SST','PRD')
+        </when>
+        <when test=' SupplierType ==  "OTHERS" '>
+          AND BPSUPPLIER.TSSCOD_0 NOT IN ('SST','PRD')
+        </when>
+        <otherwise>
+        </otherwise>
+        </choose>
+   WHERE
+      --- ONLY RCL[Customer Claim], REN[NC entry], RNC[NC internal], RFN[NC final]
+      YSRE_CATEG_0 IN ('RCL','RNC','REN','RFN')
+
+     <if test=' SupplierCode != "ALL" '>
+     AND YRNCBPS_0 = #{SupplierCode}
+     </if>
+     AND (
+       YSRE_DATNC_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_0 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_1 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_2 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_3 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_4 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_5 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_6 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_7 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_8 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_9 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_10 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+       OR YSRE_DATNC_11 BETWEEN CONVERT(datetime, #{DateFrom} ,120) AND CONVERT(datetime, #{DateTo} ,120)
+     )
+
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+  )
+
+  SELECT DISTINCT
+    ROW_NUMBER() OVER (ORDER BY NCDate ASC, NCNo ASC) AS ItemNO,
+    * 
+    FROM T0
+  ORDER BY 
+    ItemNO ASC
+
+  OFFSET #{Offset} ROWS
+  FETCH NEXT #{Limit} ROWS ONLY
+  </select>
 </mapper>

@@ -15,11 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class CurrencyMapperTest {
 
-    @Autowired
-    private CurrencyMapper currencyMapper;
+  @Autowired
+  private CurrencyMapper currencyMapper;
 
-    @Test
-    void testFindCurrencyRate() {
-        currencyMapper.findCurrencyRate("USD", "CNY", "2020-01-01");
-    }
+  @Test
+  void testFindCurrencyRate() {
+    currencyMapper.findCurrencyRate("USD", "CNY", "2020-01-01");
+  }
 }

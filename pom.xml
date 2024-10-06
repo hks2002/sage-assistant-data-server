@@ -1,233 +1,243 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.1</version>
-		<relativePath/>
-		<!-- lookup parent from repository -->
-	</parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <!-- ❗️❗️❗️ before upgrade it, please run it to check 3.4.0 have some issuses -->
+    <version>3.3.6</version>
+    <relativePath/>
+    <!-- lookup parent from repository -->
+  </parent>
 
+  <groupId>com.da</groupId>
+  <artifactId>sage-assistant-server</artifactId>
+  <version>4.1.0</version>
+  <name>SageAassistantServer</name>
+  <description>Sage assistant data server</description>
+  <packaging>war</packaging>
 
-	<groupId>com.da</groupId>
-	<artifactId>sage-assistant-server</artifactId>
-	<version>4.1.0</version>
-	<name>SageAassistantServer</name>
-	<description>Sage assistant data server</description>
-	<packaging>war</packaging>
+  <url>https://github.com/hks2002/sage-assistant-server</url>
+  <!-- Define where the source code for this project lives -->
+  <scm>
+    <connection>scm:git:https://github.com/hks2002/sage-assistant-server.git</connection>
+    <developerConnection>scm:git:https://github.com/hks2002/sage-assistant-server.git</developerConnection>
+    <url>https://github.com/hks2002/sage-assistant-server</url>
+  </scm>
 
-	<url>https://github.com/hks2002/sage-assistant-server</url>
-	<!-- Define where the source code for this project lives -->
-	<scm>
-		<connection>scm:git:https://github.com/hks2002/sage-assistant-server.git</connection>
-		<developerConnection>scm:git:https://github.com/hks2002/sage-assistant-server.git</developerConnection>
-		<url>https://github.com/hks2002/sage-assistant-server</url>
-	</scm>
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
 
-	<licenses>
-		<license>
-			<name>MIT</name>
-			<url>https://opensource.org/licenses/MIT</url>
-		</license>
-	</licenses>
+  <developers>
+    <developer>
+      <name>Robert Huang</name>
+      <email>56649783@qq.com</email>
+      <organization>Dedienne Aerospace China ZhuHai</organization>
+      <organizationUrl/>
+    </developer>
+  </developers>
 
-	<developers>
-		<developer>
-			<name>Robert Huang</name>
-			<email>56649783@qq.com</email>
-			<organization>Dedienne Aerospace China ZhuHai</organization>
-			<organizationUrl/>
-		</developer>
-	</developers>
+  <properties>
+    <java.version>17</java.version>
+  </properties>
 
-	<properties>
-		<java.version>17</java.version>
-	</properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <!-- remove default logger logback, using log4j2 -->
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+        <!-- remove default Jackson, use fastjson2 -->
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-json</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- use log4j2 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
+    </dependency>
+    <!-- use fastjson2 -->
+    <dependency>
+      <groupId>com.alibaba.fastjson2</groupId>
+      <artifactId>fastjson2-extension-spring6</artifactId>
+      <version>2.0.52</version>
+    </dependency>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<!-- remove default logger logback, using log4j2 -->
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-				<!-- remove default Jackson, use fastjson2 -->
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-json</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- use log4j2 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-		<!-- use fastjson2 -->
-		<dependency>
-			<groupId>com.alibaba.fastjson2</groupId>
-			<artifactId>fastjson2-extension-spring6</artifactId>
-			<version>2.0.33</version>
-		</dependency>
+    <!-- test -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-		<!-- test -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+    <!-- devtools -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-devtools</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
-		<!-- devtools -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
-		</dependency>
+    <!-- mybatis-plus-boot-starter it contains mybatis and  spring-boot-starter-jdbc-->
+    <!-- mybatis-plus is easier use than mybatis -->
+    <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis-spring -->
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis-spring</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-boot-starter</artifactId>
+      <version>3.5.7</version>
+    </dependency>
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-boot-starter-test</artifactId>
+      <version>3.5.7</version>
+    </dependency>
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+      <version>4.2.0</version>
+    </dependency>
 
-		<!-- mybatis-plus-boot-starter it contains mybatis and  spring-boot-starter-jdbc-->
-		<!-- mybatis-plus is easier use than mybatis -->
-		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis-spring -->
-		<dependency>
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis-spring</artifactId>
-			<version>3.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-boot-starter</artifactId>
-			<version>3.5.7</version>
-		</dependency>
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-boot-starter-test</artifactId>
-			<version>3.5.7</version>
-		</dependency>
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
-			<version>4.2.0</version>
-		</dependency>
+    <!-- database driver -->
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+    </dependency>
 
-		<!-- database driver -->
-		<dependency>
-			<groupId>com.microsoft.sqlserver</groupId>
-			<artifactId>mssql-jdbc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-		</dependency>
+    <!-- getter and setter -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
 
-		<!-- getter and setter -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
+    <!-- cache -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
 
-		<!-- cache -->
-		<dependency>
-			<groupId>com.github.ben-manes.caffeine</groupId>
-			<artifactId>caffeine</artifactId>
-		</dependency>
+    <dependency>
+        <groupId>com.bucket4j</groupId>
+        <artifactId>bucket4j-core</artifactId>
+        <version>8.10.1</version>
+    </dependency>
 
-		<dependency>
-			<groupId>com.itextpdf</groupId>
-			<artifactId>itextpdf</artifactId>
-			<version>5.5.13.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
-			<version>1.78.1</version>
-		</dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+      <version>5.5.13.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>1.78.1</version>
+    </dependency>
 
-		<!-- RSS Feed -->
-		<!-- https://mvnrepository.com/artifact/com.rometools/rome -->
-		<dependency>
-			<groupId>com.rometools</groupId>
-			<artifactId>rome</artifactId>
-			<version>2.1.0</version>
-		</dependency>
-	</dependencies>
+    <!-- RSS Feed -->
+    <!-- https://mvnrepository.com/artifact/com.rometools/rome -->
+    <dependency>
+      <groupId>com.rometools</groupId>
+      <artifactId>rome</artifactId>
+      <version>2.1.0</version>
+    </dependency>
 
-	<build>
-		<!-- ❗️❗️❗️ Don't use <resources> at here, properties @project.name@ don't works ❗️❗️❗️ -->
-		<!-- ❗️❗️❗️ <resources> </resources> ❗️❗️❗️ -->
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<configuration>
-					<encoding>utf-8</encoding>
-					<useDefaultDelimiters>true</useDefaultDelimiters>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>resources</goal>
-						</goals>
-						<configuration>
-							<!-- Because we use cumstomer resource path, we need to all resource -->
-							<!-- ✔️✔️✔️Properties @project.name@ works here ✔️✔️✔️-->
-							<resources>
-								<resource>
-									<directory>src/main/mapper</directory>
-									<targetPath>mapper</targetPath>
-									<includes>
-										<include>**/*.xml</include>
-									</includes>
-								</resource>
-								<resource>
-									<directory>src/main/resources</directory>
-									<includes>
-										<include>**/*.*</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Skip running tests, we will run it manually -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<skipTests>true</skipTests>
-					<forkCount>1</forkCount>
-					<reuseForks>true</reuseForks>
-				</configuration>
-			</plugin>
-			<!-- Sign project artifact, the POM, and attached artifacts with GnuPG for deployment. -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <!-- ❗️❗️❗️ import, properties @project.name@ replacing ❗️❗️❗️ -->
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>static/*/*.*</exclude>
+          <exclude>static/*/*.css</exclude>
+          <exclude>static/*/*.ico</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>src/main/mapper</directory>
+        <targetPath>mapper</targetPath>
+        <includes>
+          <include>**/*.xml</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+    <!-- keep war with version and no version at same times -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+            <execution>
+                <phase>package</phase>
+                <goals>
+                    <goal>run</goal>
+                </goals>
+                <configuration>
+                    <target>
+                        <copy tofile="${project.build.directory}/${project.artifactId}.war" file="${project.build.directory}/${project.artifactId}-${project.version}.war" />
+                    </target>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
+
+      <!-- Skip running tests, we will run it manually -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+        </configuration>
+      </plugin>
+      <!-- Sign project artifact, the POM, and attached artifacts with GnuPG for deployment. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

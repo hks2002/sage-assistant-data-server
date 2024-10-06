@@ -76,7 +76,7 @@
             PORDERP.CREUSR_0,
             DENSE_RANK() OVER (PARTITION BY PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID ) AS SEQ,
             SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
-            0 AS SQTY
+            SUM(MFGITM.EXTQTY_0) OVER (PARTITION BY MFGITM.PJT_0 ) AS SQTY
         FROM  T1
         INNER JOIN EXPLOIT.PORDERP AS PORDERP
             ON T1.PJT_0 = PORDERP.PJT_0
@@ -84,6 +84,9 @@
         INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
             ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
             AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        INNER JOIN EXPLOIT.MFGITM MFGITM
+            ON MFGITM.PJT_0 = PORDERP.PJT_0
+            AND MFGITM.MFGFCY_0 = #{Site}            
         WHERE
             PORDERP.PRHFCY_0 = #{Site}
         AND PORDERQ.PRHFCY_0 = #{Site}
@@ -113,6 +116,8 @@
         ON T2.PJT_0 = T4.PJT_0
            AND T2.ITMREF_0 = T4.ITMREF_0                   
            AND T2.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
+    WHERE
+        T2.PQTY &gt; T2.SQTY
 
     UNION
 
@@ -135,6 +140,8 @@
         ON T3.PJT_0 = T5.PJT_0
            AND T3.ITMREF_0 = T5.ITMREF_0                   
            AND T3.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
+    WHERE
+      T3.PQTY &gt; T3.SQTY
   </select>
   <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedRA">
 WITH
@@ -167,35 +174,36 @@ WITH
   ),
   T2 AS (    --- find for normal sales porjectNO
     SELECT DISTINCT
-    PRECEIPTD.PJT_0,
-	  PRECEIPTD.ITMREF_0, 
-	  PRECEIPTD.PTHNUM_0,
-	  PRECEIPTD.PTDLIN_0,
-	  PRECEIPTD.CREDAT_0 AS ReceiptDate,
-	  PRECEIPTD.POHNUM_0,
-	  PRECEIPTD.POPLIN_0,
-	  PRECEIPTD.CREUSR_0 AS Receiptor,
-	  PORDERP.CREDAT_0 AS PurchaseDate,
-	  PORDERP.CREUSR_0 AS Purchaser,
-	  PRECEIPTD.QTYSTU_0,
-	  PRECEIPTD.LINATIAMT_0, 
-	  PRECEIPTD.NETCUR_0,
+      PRECEIPTD.PJT_0,
+      PRECEIPTD.ITMREF_0, 
+      PRECEIPTD.PTHNUM_0,
+      PRECEIPTD.PTDLIN_0,
+      PRECEIPTD.CREDAT_0 AS ReceiptDate,
+      PRECEIPTD.POHNUM_0,
+      PRECEIPTD.POPLIN_0,
+      PRECEIPTD.CREUSR_0 AS Receiptor,
+      PORDERQ.CREDAT_0 AS PurchaseDate,
+      PORDERQ.CREUSR_0 AS Purchaser,
+      PRECEIPTD.QTYSTU_0,
+      PRECEIPTD.LINATIAMT_0, 
+      PRECEIPTD.NETCUR_0,
       DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
       SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS RQTY,
+      SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS PQTY,
       SORDERQ.QTYSTU_0 AS SQTY
     FROM  T1
       INNER JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
         ON T1.PJT_0 = PRECEIPTD.PJT_0
            AND T1.ITMREF_0 = PRECEIPTD.ITMREF_0
-      LEFT JOIN EXPLOIT.PORDERP AS PORDERP
-         ON PRECEIPTD.POHNUM_0 = PORDERP.POHNUM_0 
-		   AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
+      LEFT JOIN EXPLOIT.PORDERQ AS PORDERQ
+         ON PRECEIPTD.POHNUM_0 = PORDERQ.POHNUM_0 
+		   AND PRECEIPTD.POPLIN_0 = PORDERQ.POPLIN_0
       INNER JOIN EXPLOIT.SORDERQ SORDERQ
         ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
     WHERE
           PRECEIPTD.PRHFCY_0 = #{Site}
       AND PRECEIPTD.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
-      AND PORDERP.PRHFCY_0 = #{Site}
+      AND PORDERQ.PRHFCY_0 = #{Site}
       AND SORDERQ.SALFCY_0 = #{Site}
   ),
   T3 AS ( --- find for normal stock porjectNO
@@ -208,25 +216,32 @@ WITH
       PRECEIPTD.POHNUM_0,
       PRECEIPTD.POPLIN_0,
       PRECEIPTD.CREUSR_0 AS Receiptor,
-      PORDERP.CREDAT_0 AS PurchaseDate,
-      PORDERP.CREUSR_0 AS Purchaser,
+      PORDERQ.CREDAT_0 AS PurchaseDate,
+      PORDERQ.CREUSR_0 AS Purchaser,
       PRECEIPTD.QTYSTU_0,
       PRECEIPTD.LINATIAMT_0, 
       PRECEIPTD.NETCUR_0,
       DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
-      SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS RQTY,
-      0 AS SQTY
+      SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS RQTY,      
+      SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS PQTY,
+      SUM(MFGITM.EXTQTY_0) OVER (PARTITION BY MFGITM.PJT_0 ) AS SQTY
     FROM  T1
       INNER JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
         ON T1.PJT_0 = PRECEIPTD.PJT_0
            AND T1.ITMREF_0 = PRECEIPTD.ITMREF_0
-      LEFT JOIN EXPLOIT.PORDERP AS PORDERP
-         ON PRECEIPTD.POHNUM_0 = PORDERP.POHNUM_0 
-		   AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
+      LEFT JOIN EXPLOIT.PORDERQ AS PORDERQ
+         ON PRECEIPTD.POHNUM_0 = PORDERQ.POHNUM_0 
+		   AND PRECEIPTD.POPLIN_0 = PORDERQ.POPLIN_0
+      INNER JOIN EXPLOIT.PORDERP AS PORDERP
+         ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+		   AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+      INNER JOIN EXPLOIT.MFGITM MFGITM
+            ON MFGITM.PJT_0 = PORDERP.PJT_0
+            AND MFGITM.MFGFCY_0 = #{Site}            
     WHERE
           PRECEIPTD.PRHFCY_0 = #{Site}
       AND PRECEIPTD.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
-      AND PORDERP.PRHFCY_0 = #{Site}
+      AND PORDERQ.PRHFCY_0 = #{Site}
       AND (
          SUBSTRING(PRECEIPTD.PJT_0,6,1) = '-'            --- ProjectNO is not Sales projectno
          OR SUBSTRING(PRECEIPTD.PJT_0,7,1) = '-'
@@ -234,52 +249,58 @@ WITH
          )
   )
  
-SELECT
-    T2.PJT_0 AS ProjectNO,
-    T2.ITMREF_0 AS PN, 
-    T2.PTHNUM_0 AS ReceiptNO,
-    T2.PTDLIN_0 AS ReceiptLine,
-    T2.Receiptor,
-    T2.POHNUM_0 AS PurchaseNO,
-    T2.POPLIN_0 AS PurchaseLine,
-    T2.PurchaseDate,
-    T2.Purchaser,
-    T2.QTYSTU_0 AS ReceiptQty,
-    T2.LINATIAMT_0 AS ReceiptAmount, 
-    T2.NETCUR_0 AS Currency,
-    T2.RQTY AS TotalReceiptQty,
-    T2.SQTY AS TotalSalesQty,
-    T2.SEQ AS Seq
-FROM
-  T2
-INNER JOIN T2 AS T4
-    ON T2.PJT_0 = T4.PJT_0
-        AND T2.ITMREF_0 = T4.ITMREF_0                   
-        AND T2.ReceiptDate &gt;= CONVERT(datetime, #{DateFrom}, 120)
+  SELECT
+      T2.PJT_0 AS ProjectNO,
+      T2.ITMREF_0 AS PN, 
+      T2.PTHNUM_0 AS ReceiptNO,
+      T2.PTDLIN_0 AS ReceiptLine,
+      T2.Receiptor,
+      T2.POHNUM_0 AS PurchaseNO,
+      T2.POPLIN_0 AS PurchaseLine,
+      T2.PurchaseDate,
+      T2.Purchaser,
+      T2.QTYSTU_0 AS ReceiptQty,
+      T2.LINATIAMT_0 AS ReceiptAmount, 
+      T2.NETCUR_0 AS Currency,
+      T2.RQTY AS TotalReceiptQty,
+      T2.PQTY AS TotalPurchaseQty,
+      T2.SQTY AS TotalSalesQty,
+      T2.SEQ AS Seq
+  FROM
+    T2
+  INNER JOIN T2 AS T4
+      ON T2.PJT_0 = T4.PJT_0
+          AND T2.ITMREF_0 = T4.ITMREF_0                   
+          AND T2.ReceiptDate &gt;= CONVERT(datetime, #{DateFrom}, 120)
+  WHERE
+    T2.RQTY &gt; T2.SQTY
 
-UNION
+  UNION
 
-SELECT
-    T3.PJT_0 AS ProjectNO,
-    T3.ITMREF_0 AS PN, 
-    T3.PTHNUM_0 AS ReceiptNO,
-    T3.PTDLIN_0 AS ReceiptLine,
-    T3.Receiptor,
-    T3.POHNUM_0 AS PurchaseNO,
-    T3.POPLIN_0 AS PurchaseLine,
-    T3.PurchaseDate,
-    T3.Purchaser,
-    T3.QTYSTU_0 AS ReceiptQty,
-    T3.LINATIAMT_0 AS ReceiptAmount, 
-    T3.NETCUR_0 AS Currency,
-    T3.RQTY AS TotalReceiptQty,
-    T3.SQTY AS TotalSalesQty,
-    T3.SEQ AS Seq
-FROM
-  T3
-INNER JOIN T3 AS T5
-    ON T3.PJT_0 = T5.PJT_0
-        AND T3.ITMREF_0 = T5.ITMREF_0                   
-        AND T3.ReceiptDate &gt;= CONVERT(datetime, #{DateFrom}, 120)
+  SELECT
+      T3.PJT_0 AS ProjectNO,
+      T3.ITMREF_0 AS PN, 
+      T3.PTHNUM_0 AS ReceiptNO,
+      T3.PTDLIN_0 AS ReceiptLine,
+      T3.Receiptor,
+      T3.POHNUM_0 AS PurchaseNO,
+      T3.POPLIN_0 AS PurchaseLine,
+      T3.PurchaseDate,
+      T3.Purchaser,
+      T3.QTYSTU_0 AS ReceiptQty,
+      T3.LINATIAMT_0 AS ReceiptAmount, 
+      T3.NETCUR_0 AS Currency,
+      T3.RQTY AS TotalReceiptQty,
+      T3.PQTY AS TotalPurchaseQty,
+      T3.SQTY AS TotalSalesQty,
+      T3.SEQ AS Seq
+  FROM
+    T3
+  INNER JOIN T3 AS T5
+      ON T3.PJT_0 = T5.PJT_0
+          AND T3.ITMREF_0 = T5.ITMREF_0                   
+          AND T3.ReceiptDate &gt;= CONVERT(datetime, #{DateFrom}, 120)
+    WHERE
+      T3.RQTY &gt; T3.SQTY
   </select>
 </mapper>

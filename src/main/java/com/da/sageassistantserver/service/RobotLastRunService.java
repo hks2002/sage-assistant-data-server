@@ -1,30 +1,29 @@
-/******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2024-06-02 21:34:24                               *
- * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-22 13:39:48                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
- *****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2024-06-02 21:34:24                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-09 19:50:22                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.da.sageassistantserver.dao.RobotLastRunMapper;
+import com.da.sageassistantserver.model.RobotLastRun;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.da.sageassistantserver.dao.RobotLastRunMapper;
-import com.da.sageassistantserver.model.RobotLastRun;
-
 @Service
 public class RobotLastRunService {
+
   @Autowired
   RobotLastRunMapper robotLastRunMapper;
 
@@ -39,7 +38,10 @@ public class RobotLastRunService {
     addLastRun(robotLastRun);
   }
 
-  public void updateLastRun(RobotLastRun robotLastRun, LambdaUpdateWrapper<RobotLastRun> wrapper) {
+  public void updateLastRun(
+    RobotLastRun robotLastRun,
+    LambdaUpdateWrapper<RobotLastRun> wrapper
+  ) {
     robotLastRun.setLast_run(new Timestamp(System.currentTimeMillis()));
     robotLastRunMapper.update(robotLastRun, wrapper);
   }
@@ -66,7 +68,9 @@ public class RobotLastRunService {
     queryWrapper.eq(RobotLastRun::getMsg, msg);
     queryWrapper.orderBy(true, false, RobotLastRun::getId);
 
-    List<RobotLastRun> robotLastRuns = robotLastRunMapper.selectList(queryWrapper);
+    List<RobotLastRun> robotLastRuns = robotLastRunMapper.selectList(
+      queryWrapper
+    );
     long unixTimestamp = 0L; // Unix timestamp in milliseconds
 
     if (robotLastRuns.size() > 0) {
@@ -78,10 +82,13 @@ public class RobotLastRunService {
       addLastRun(msg);
     }
 
-    ZonedDateTime utcDateTime = Instant.ofEpochMilli(unixTimestamp)
-        .atZone(ZoneId.of("Asia/Shanghai")).withZoneSameInstant(ZoneId.of("UTC"));
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    ZonedDateTime utcDateTime = Instant
+      .ofEpochMilli(unixTimestamp)
+      .atZone(ZoneId.of("Asia/Shanghai"))
+      .withZoneSameInstant(ZoneId.of("UTC"));
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+      "yyyy-MM-dd HH:mm:ss"
+    );
     return utcDateTime.format(formatter);
   }
-
 }

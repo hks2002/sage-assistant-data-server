@@ -9,30 +9,28 @@
 
 package com.da.sageassistantserver.model;
 
+import com.alibaba.fastjson2.annotation.JSONType;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import com.alibaba.fastjson2.annotation.JSONType;
-
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class CostHistory {
 
-    private String PurchaseSite;
-    private String ProjectNO;
-    private String OrderPN;
-    private Date OrderDate;
-    private String PurchaseNO;
-    private String Line;
-    private String VendorCode;
-    private String VendorName;
-    private String PurchasePN;
-    private String Description;
-    private String Currency;
-    private BigDecimal NetPrice;
-    private Integer Qty;
-    private BigDecimal USD;
-    private Float Rate;
+  private String PurchaseSite;
+  private String ProjectNO;
+  private String OrderPN;
+  private Date OrderDate;
+  private String PurchaseNO;
+  private String Line;
+  private String VendorCode;
+  private String VendorName;
+  private String PurchasePN;
+  private String Description;
+  private String Currency;
+  private BigDecimal NetPrice;
+  private Integer Qty;
+  private BigDecimal USD;
+  private Float Rate;
 }

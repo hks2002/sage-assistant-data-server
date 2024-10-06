@@ -2,442 +2,445 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.da.sageassistantserver.dao.AnalysesMapper">
-  <!--Open
-	L2 Cache under Names pace: 1 Hour -->
-  <cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="102400" />
+	<!--Open
+  L2 Cache under Names pace: 1 Hour -->
+	<cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="102400" />
 
-  <select id="analysesQuoteSalesCost" resultType="com.da.sageassistantserver.model.AnalysesQuoteSalesCost">
-	WITH 
-	Quote AS (
-	SELECT *
-	FROM (
-		SELECT 
-			T1.PN,
-			T1.Site,
-			T1.Description,
-			T1.QCnt,
-			T1.QQty,
-			'LastQPrice' + cast(T1.ROWNUM as varchar(4)) LastQPrice,
-			T1.USD,
-			MIN(T1.USD) OVER (PARTITION BY T1.PN) AS MinQPrice,
-			AVG(T1.USD) OVER (PARTITION BY T1.PN) AS AvgQPrice,
-			MAX(T1.USD) OVER (PARTITION BY T1.PN) AS MaxQPrice
-		FROM (
-			SELECT 
-				SQUOTED.ITMREF_0 AS PN,
-				SQUOTED.SALFCY_0 AS Site,
-				IIF(ITMMASTER.ITMDES2_0 !='',ITMMASTER.ITMDES1_0+' '+ITMMASTER.ITMDES2_0,ITMMASTER.ITMDES1_0) AS Description,
-				COUNT(0) OVER (PARTITION BY SQUOTED.ITMREF_0) AS QCnt,
-				SUM(SQUOTED.QTY_0) OVER (PARTITION BY SQUOTED.ITMREF_0) AS QQty,
-				CASE 
-					WHEN SQUOTE.CUR_0 = 'USD' THEN SQUOTED.NETPRI_0
-					WHEN SQUOTE.CUR_0 = 'EUR' THEN SQUOTED.NETPRI_0 * 1.18
-					WHEN SQUOTE.CUR_0 = 'GBP' THEN SQUOTED.NETPRI_0 * 1.31
-					WHEN SQUOTE.CUR_0 = 'SGD' THEN SQUOTED.NETPRI_0 * 0.73
-					WHEN SQUOTE.CUR_0 = 'CNY' THEN SQUOTED.NETPRI_0 * 0.145
-					WHEN SQUOTE.CUR_0 = 'RMB' THEN SQUOTED.NETPRI_0 * 0.145
-					WHEN SQUOTE.CUR_0 = 'HKD' THEN SQUOTED.NETPRI_0 * 0.13
-					WHEN SQUOTE.CUR_0 = 'MXN' THEN SQUOTED.NETPRI_0 * 0.064
-					WHEN SQUOTE.CUR_0 = 'AED' THEN SQUOTED.NETPRI_0 * 0.27
-					WHEN SQUOTE.CUR_0 = 'QAR' THEN SQUOTED.NETPRI_0 * 0.275
-				END AS USD,
-				ROW_NUMBER() OVER (PARTITION BY SQUOTED.ITMREF_0 ORDER BY SQUOTED.QUODAT_0 DESC) AS ROWNUM
-			FROM EXPLOIT.SQUOTE SQUOTE
-				LEFT JOIN EXPLOIT.SQUOTED SQUOTED 
-					ON SQUOTED.SQHNUM_0 = SQUOTE.SQHNUM_0
-				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER 
-					ON SQUOTED.ITMREF_0 = ITMMASTER.ITMREF_0
-			WHERE SQUOTED.NETPRI_0 > 0
-    <if test="CategoryCode != null and CategoryCode != ''">
-					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-    </if>
-    <if test="PnRoot != null and PnRoot != ''">
-					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-    </if>
-				AND SQUOTE.SALFCY_0 = #{Site}
-				AND SQUOTED.SALFCY_0 = #{Site}
-				AND (SQUOTE.QUODAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-				AND (SQUOTED.QUODAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-				) AS T1	-- T1 Change Price to USD
-		WHERE #{Limit} >= T1.ROWNUM  -- change the number, and below LastQPN
-	) AS T2 -- T2 for PIVOT
-	PIVOT ( MAX(USD) FOR LastQPrice IN (LastQPrice1,LastQPrice2,LastQPrice3,LastQPrice4,LastQPrice5,LastQPrice6,LastQPrice7,LastQPrice8,LastQPrice9,LastQPrice10) ) AS TPQP
-	),
-	Sales AS (
-	SELECT *
-	FROM (
-		SELECT 
-			T1.PN AS SPN,
-			T1.SCnt,
-			T1.SQty,
-			'LastSPrice' + cast(T1.ROWNUM as varchar(4)) LastSPrice,
-			T1.USD,
-			MIN(T1.USD) OVER (PARTITION BY T1.PN) AS MinSPrice,
-			AVG(T1.USD) OVER (PARTITION BY T1.PN) AS AvgSPrice,
-			MAX(T1.USD) OVER (PARTITION BY T1.PN) AS MaxSPrice
-		FROM (
-			SELECT 
-				SORDERQ.ITMREF_0 AS PN,
-				COUNT(0) OVER (PARTITION BY SORDERQ.ITMREF_0) AS SCnt,
-				SUM(SORDERQ.QTY_0) OVER (PARTITION BY SORDERQ.ITMREF_0) AS SQty,
-				CASE 
-					WHEN SORDER.CUR_0 = 'USD' THEN SORDERP.NETPRI_0
-					WHEN SORDER.CUR_0 = 'EUR' THEN SORDERP.NETPRI_0 * 1.18
-					WHEN SORDER.CUR_0 = 'GBP' THEN SORDERP.NETPRI_0 * 1.31
-					WHEN SORDER.CUR_0 = 'SGD' THEN SORDERP.NETPRI_0 * 0.73
-					WHEN SORDER.CUR_0 = 'CNY' THEN SORDERP.NETPRI_0 * 0.145
-					WHEN SORDER.CUR_0 = 'RMB' THEN SORDERP.NETPRI_0 * 0.145
-					WHEN SORDER.CUR_0 = 'HKD' THEN SORDERP.NETPRI_0 * 0.13
-					WHEN SORDER.CUR_0 = 'MXN' THEN SORDERP.NETPRI_0 * 0.064
-					WHEN SORDER.CUR_0 = 'AED' THEN SORDERP.NETPRI_0 * 0.27
-					WHEN SORDER.CUR_0 = 'QAR' THEN SORDERP.NETPRI_0 * 0.275
-				END AS USD,
-				ROW_NUMBER() OVER (PARTITION BY ITMMASTER.ITMREF_0 ORDER BY SORDERP.CREDAT_0 DESC) AS ROWNUM
-			FROM EXPLOIT.SORDER SORDER
-				LEFT JOIN  EXPLOIT.SORDERQ SORDERQ
-					ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
-				LEFT JOIN  EXPLOIT.SORDERP SORDERP
-					ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
-					AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
-				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
-					ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
-			WHERE SORDERP.NETPRI_0 > 0
-    <if test="CategoryCode != null and CategoryCode != ''">
-					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-    </if>
-    <if test="PnRoot != null and PnRoot != ''">
-					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-    </if>
-				AND SORDER.SALFCY_0 = #{Site}
-				AND SORDERQ.SALFCY_0 = #{Site}
-				AND SORDERP.SALFCY_0 = #{Site}
-				AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-				AND (SORDERQ.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-				) AS T1	-- T1 Change Price to USD
-		WHERE #{Limit}>=T1.ROWNUM -- change the number, and below LastSPN
-	) AS T2 -- T2 for PIVOT
-	PIVOT ( MAX(USD) FOR LastSPrice IN (LastSPrice1,LastSPrice2,LastSPrice3,LastSPrice4,LastSPrice5,LastSPrice6,LastSPrice7,LastSPrice8,LastSPrice9,LastSPrice10) ) AS TPSP
-	),
-	SalesPJT AS (
-	SELECT *
-	FROM (
-		SELECT 
-			T1.PN AS SPJTPN,
-			'LastPJT' + cast(T1.ROWNUM as varchar(4)) LastPJT,
-			T1.ProjectNO
-		FROM (
-			SELECT 
-				SORDERQ.ITMREF_0 AS PN,
-				SORDER.SALFCY_0 AS Site,
-				SORDERQ.YSOH_PJT_0 AS ProjectNO,
-				ROW_NUMBER() OVER (PARTITION BY ITMMASTER.ITMREF_0 ORDER BY SORDERP.CREDAT_0 DESC) AS ROWNUM
-			FROM EXPLOIT.SORDER SORDER
-				LEFT JOIN  EXPLOIT.SORDERQ SORDERQ
-					ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
-				LEFT JOIN  EXPLOIT.SORDERP SORDERP
-					ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
-					AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
-				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
-					ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
-			WHERE SORDERP.NETPRI_0 > 0
-    <if test="CategoryCode != null and CategoryCode != ''">
-					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-    </if>
-    <if test="PnRoot != null and PnRoot != ''">
-					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-    </if>
-				AND SORDER.SALFCY_0 = #{Site}
-				AND SORDERQ.SALFCY_0 = #{Site}
-				AND SORDERP.SALFCY_0 = #{Site}
-				AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-				AND (SORDERQ.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-				) AS T1	-- T1 Change Price to USD
-		WHERE #{Limit}>=T1.ROWNUM  -- change the number, and below LastSPN
-	) AS T2 -- T2 for PIVOT
-	PIVOT ( MAX(ProjectNO) FOR LastPJT IN (LastPJT1,LastPJT2,LastPJT3,LastPJT4,LastPJT5,LastPJT6,LastPJT7,LastPJT8,LastPJT9,LastPJT10) ) AS TPPJT
-	),
-	ProjectCost AS (
-	SELECT *
-	FROM (
-	   SELECT
-		 T2.PN AS PJTCPN,
-		 --T2.ROWNUM,
-		 --T2.ProjectNO,
-		 T2.Cost,
-		 'LastCost' + cast(T2.ROWNUM as varchar(4)) LastCost
-		 FROM (
-			SELECT DISTINCT
-			 T1.PN,
-			 T1.ProjectNO,
-			 SUM(T1.USD) OVER (PARTITION BY T1.ProjectNO ) AS Cost,
-			 ROW_NUMBER() OVER (PARTITION BY T1.PN ORDER BY T1.CREDAT_0 DESC) AS ROWNUM
-			FROM (
-				SELECT DISTINCT
-					SORDERQ.ITMREF_0 AS PN,
-					PORDERP.PJT_0 AS ProjectNO,
-					PORDER.CUR_0 AS Currency,
-					CASE 
-						WHEN PORDER.CUR_0 = 'USD' THEN SUM(PORDERP.NETPRI_0) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'MXN' THEN SUM(PORDERP.NETPRI_0 * 0.064) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'AED' THEN SUM(PORDERP.NETPRI_0 * 0.27) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'GBP' THEN SUM(PORDERP.NETPRI_0 * 1.31) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'QAR' THEN SUM(PORDERP.NETPRI_0 * 0.275) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'EUR' THEN SUM(PORDERP.NETPRI_0 * 1.18) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'SGD' THEN SUM(PORDERP.NETPRI_0 * 0.73) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'CNY' THEN SUM(PORDERP.NETPRI_0 * 0.145) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'RMB' THEN SUM(PORDERP.NETPRI_0 * 0.145) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-						WHEN PORDER.CUR_0 = 'HKD' THEN SUM(PORDERP.NETPRI_0 * 0.13) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
-					END AS USD,
-					SORDERQ.CREDAT_0
-				FROM EXPLOIT.PORDER PORDER
-					 LEFT JOIN EXPLOIT.PORDERP PORDERP
-						ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
-					 LEFT JOIN EXPLOIT.SORDERQ SORDERQ
-						ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
-					 LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
-						ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
-				WHERE 1=1
-    <if test="CategoryCode != null and CategoryCode != ''">
-						AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-    </if>
-    <if test="PnRoot != null and PnRoot != ''">
-						AND ITMMASTER.ITMREF_0 = #{PnRoot}
-    </if>
-					AND PORDER.POHFCY_0 = #{Site}
-					AND PORDERP.PRHFCY_0 = #{Site}
-					AND SORDERQ.SALFCY_0 = #{Site}
-					AND (SORDERQ.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-			) AS T1  -- multi currency 
-		) AS T2  -- summaried to USD by projectNO
-		WHERE #{Limit}>=T2.ROWNUM	-- change the number, and below LastSPN
-	) AS T3 -- T3 for PIVOT
-	PIVOT ( MAX(Cost) FOR LastCost IN (LastCost1,LastCost2,LastCost3,LastCost4,LastCost5,LastCost6,LastCost7,LastCost8,LastCost9,LastCost10) ) AS TPCOST
-	)
-	
-	SELECT DISTINCT 
-		Quote.*,
-		Sales.*,
-		SalesPJT.*,
-		ProjectCost.*
-	FROM Quote
-	LEFT JOIN Sales
-		ON Sales.SPN = Quote.PN
-	LEFT JOIN SalesPJT
-		ON SalesPJT.SPJTPN = Quote.PN
-	LEFT JOIN ProjectCost
-		ON ProjectCost.PJTCPN = Quote.PN
-  </select>
-  <select id="analysesPurchase" resultType="com.da.sageassistantserver.model.AnalysesPurchase">
-		WITH
-		Currency AS (
-				SELECT 
-					CUR_0 AS Sour,
-					CURDEN_0 AS Dest,
-					CHGRAT_0 AS Rate,
-					CHGSTRDAT_0 AS StartDate,
-					LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-				FROM EXPLOIT.TABCHANGE 
-				WHERE CURDEN_0 = #{Currency}
-		),
-		ProjectCost AS ( 
-		SELECT DISTINCT
-			PORDERP.PJT_0 AS ProjectNO,
-			PORDERQ.POHNUM_0 AS PurchaseNO,
-			PORDERQ.NETCUR_0 AS Currency,
+	<select id="analysesQuoteSalesCost" resultType="com.da.sageassistantserver.model.AnalysesQuoteSalesCost">
+  WITH
+  Quote AS (
+  SELECT *
+  FROM (
+    SELECT
+      T1.PN,
+      T1.Site,
+      T1.Description,
+      T1.QCnt,
+      T1.QQty,
+      'LastQPrice' + cast(T1.ROWNUM as varchar(4)) LastQPrice,
+      T1.USD,
+      MIN(T1.USD) OVER (PARTITION BY T1.PN) AS MinQPrice,
+      AVG(T1.USD) OVER (PARTITION BY T1.PN) AS AvgQPrice,
+      MAX(T1.USD) OVER (PARTITION BY T1.PN) AS MaxQPrice
+    FROM (
+      SELECT
+        SQUOTED.ITMREF_0 AS PN,
+        SQUOTED.SALFCY_0 AS Site,
+        IIF(ITMMASTER.ITMDES2_0 !='',ITMMASTER.ITMDES1_0 + ' ' + ITMMASTER.ITMDES2_0,ITMMASTER.ITMDES1_0) AS Description,
+        COUNT(0) OVER (PARTITION BY SQUOTED.ITMREF_0) AS QCnt,
+        SUM(SQUOTED.QTY_0) OVER (PARTITION BY SQUOTED.ITMREF_0) AS QQty,
+        CASE
+          WHEN SQUOTE.CUR_0 = 'USD' THEN SQUOTED.NETPRI_0
+          WHEN SQUOTE.CUR_0 = 'EUR' THEN SQUOTED.NETPRI_0 * 1.18
+          WHEN SQUOTE.CUR_0 = 'GBP' THEN SQUOTED.NETPRI_0 * 1.31
+          WHEN SQUOTE.CUR_0 = 'SGD' THEN SQUOTED.NETPRI_0 * 0.73
+          WHEN SQUOTE.CUR_0 = 'CNY' THEN SQUOTED.NETPRI_0 * 0.145
+          WHEN SQUOTE.CUR_0 = 'RMB' THEN SQUOTED.NETPRI_0 * 0.145
+          WHEN SQUOTE.CUR_0 = 'HKD' THEN SQUOTED.NETPRI_0 * 0.13
+          WHEN SQUOTE.CUR_0 = 'MXN' THEN SQUOTED.NETPRI_0 * 0.064
+          WHEN SQUOTE.CUR_0 = 'AED' THEN SQUOTED.NETPRI_0 * 0.27
+          WHEN SQUOTE.CUR_0 = 'QAR' THEN SQUOTED.NETPRI_0 * 0.275
+        END AS USD,
+        ROW_NUMBER() OVER (PARTITION BY SQUOTED.ITMREF_0 ORDER BY SQUOTED.QUODAT_0 DESC) AS ROWNUM
+      FROM EXPLOIT.SQUOTE SQUOTE
+        LEFT JOIN EXPLOIT.SQUOTED SQUOTED
+          ON SQUOTED.SQHNUM_0 = SQUOTE.SQHNUM_0
+        LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
+          ON SQUOTED.ITMREF_0 = ITMMASTER.ITMREF_0
+      WHERE SQUOTED.NETPRI_0 &gt; 0
+		<if test="CategoryCode != null and CategoryCode != ''">
+          AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
+          AND ITMMASTER.ITMREF_0 = #{PnRoot}
+		</if>
+        AND SQUOTE.SALFCY_0 = #{Site}
+        AND SQUOTED.SALFCY_0 = #{Site}
+        AND (SQUOTE.QUODAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+        AND (SQUOTED.QUODAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+        ) AS T1  -- T1 Change Price to USD
+    WHERE #{Limit} &gt;= T1.ROWNUM  -- change the number, and below LastQPN
+  ) AS T2 -- T2 for PIVOT
+  PIVOT ( MAX(USD) FOR LastQPrice IN (LastQPrice1,LastQPrice2,LastQPrice3,LastQPrice4,LastQPrice5,LastQPrice6,LastQPrice7,LastQPrice8,LastQPrice9,LastQPrice10) ) AS TPQP
+  ),
+  Sales AS (
+  SELECT *
+  FROM (
+    SELECT
+      T1.PN AS SPN,
+      T1.SCnt,
+      T1.SQty,
+      'LastSPrice' + cast(T1.ROWNUM as varchar(4)) LastSPrice,
+      T1.USD,
+      MIN(T1.USD) OVER (PARTITION BY T1.PN) AS MinSPrice,
+      AVG(T1.USD) OVER (PARTITION BY T1.PN) AS AvgSPrice,
+      MAX(T1.USD) OVER (PARTITION BY T1.PN) AS MaxSPrice
+    FROM (
+      SELECT
+        SORDERQ.ITMREF_0 AS PN,
+        COUNT(0) OVER (PARTITION BY SORDERQ.ITMREF_0) AS SCnt,
+        SUM(SORDERQ.QTY_0) OVER (PARTITION BY SORDERQ.ITMREF_0) AS SQty,
+        CASE
+          WHEN SORDER.CUR_0 = 'USD' THEN SORDERP.NETPRI_0
+          WHEN SORDER.CUR_0 = 'EUR' THEN SORDERP.NETPRI_0 * 1.18
+          WHEN SORDER.CUR_0 = 'GBP' THEN SORDERP.NETPRI_0 * 1.31
+          WHEN SORDER.CUR_0 = 'SGD' THEN SORDERP.NETPRI_0 * 0.73
+          WHEN SORDER.CUR_0 = 'CNY' THEN SORDERP.NETPRI_0 * 0.145
+          WHEN SORDER.CUR_0 = 'RMB' THEN SORDERP.NETPRI_0 * 0.145
+          WHEN SORDER.CUR_0 = 'HKD' THEN SORDERP.NETPRI_0 * 0.13
+          WHEN SORDER.CUR_0 = 'MXN' THEN SORDERP.NETPRI_0 * 0.064
+          WHEN SORDER.CUR_0 = 'AED' THEN SORDERP.NETPRI_0 * 0.27
+          WHEN SORDER.CUR_0 = 'QAR' THEN SORDERP.NETPRI_0 * 0.275
+        END AS USD,
+        ROW_NUMBER() OVER (PARTITION BY ITMMASTER.ITMREF_0 ORDER BY SORDERP.CREDAT_0 DESC) AS ROWNUM
+      FROM EXPLOIT.SORDER SORDER
+        LEFT JOIN  EXPLOIT.SORDERQ SORDERQ
+          ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
+        LEFT JOIN  EXPLOIT.SORDERP SORDERP
+          ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+          AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+        LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
+          ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
+      WHERE SORDERP.NETPRI_0 > 0
+		<if test="CategoryCode != null and CategoryCode != ''">
+          AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
+          AND ITMMASTER.ITMREF_0 = #{PnRoot}
+		</if>
+        AND SORDER.SALFCY_0 = #{Site}
+        AND SORDERQ.SALFCY_0 = #{Site}
+        AND SORDERP.SALFCY_0 = #{Site}
+        AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+        AND (SORDERQ.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+        ) AS T1  -- T1 Change Price to USD
+    WHERE #{Limit}>=T1.ROWNUM -- change the number, and below LastSPN
+  ) AS T2 -- T2 for PIVOT
+  PIVOT ( MAX(USD) FOR LastSPrice IN (LastSPrice1,LastSPrice2,LastSPrice3,LastSPrice4,LastSPrice5,LastSPrice6,LastSPrice7,LastSPrice8,LastSPrice9,LastSPrice10) ) AS TPSP
+  ),
+  SalesPJT AS (
+  SELECT *
+  FROM (
+    SELECT
+      T1.PN AS SPJTPN,
+      'LastPJT' + cast(T1.ROWNUM as varchar(4)) LastPJT,
+      T1.ProjectNO
+    FROM (
+      SELECT
+        SORDERQ.ITMREF_0 AS PN,
+        SORDER.SALFCY_0 AS Site,
+        SORDERQ.YSOH_PJT_0 AS ProjectNO,
+        ROW_NUMBER() OVER (PARTITION BY ITMMASTER.ITMREF_0 ORDER BY SORDERP.CREDAT_0 DESC) AS ROWNUM
+      FROM EXPLOIT.SORDER SORDER
+        LEFT JOIN  EXPLOIT.SORDERQ SORDERQ
+          ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
+        LEFT JOIN  EXPLOIT.SORDERP SORDERP
+          ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+          AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+        LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
+          ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
+      WHERE SORDERP.NETPRI_0 > 0
+		<if test="CategoryCode != null and CategoryCode != ''">
+          AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
+          AND ITMMASTER.ITMREF_0 = #{PnRoot}
+		</if>
+        AND SORDER.SALFCY_0 = #{Site}
+        AND SORDERQ.SALFCY_0 = #{Site}
+        AND SORDERP.SALFCY_0 = #{Site}
+        AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+        AND (SORDERQ.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+        ) AS T1  -- T1 Change Price to USD
+    WHERE #{Limit}>=T1.ROWNUM  -- change the number, and below LastSPN
+  ) AS T2 -- T2 for PIVOT
+  PIVOT ( MAX(ProjectNO) FOR LastPJT IN (LastPJT1,LastPJT2,LastPJT3,LastPJT4,LastPJT5,LastPJT6,LastPJT7,LastPJT8,LastPJT9,LastPJT10) ) AS TPPJT
+  ),
+  ProjectCost AS (
+  SELECT *
+  FROM (
+     SELECT
+     T2.PN AS PJTCPN,
+     --T2.ROWNUM,
+     --T2.ProjectNO,
+     T2.Cost,
+     'LastCost' + cast(T2.ROWNUM as varchar(4)) LastCost
+     FROM (
+      SELECT DISTINCT
+       T1.PN,
+       T1.ProjectNO,
+       SUM(T1.USD) OVER (PARTITION BY T1.ProjectNO ) AS Cost,
+       ROW_NUMBER() OVER (PARTITION BY T1.PN ORDER BY T1.CREDAT_0 DESC) AS ROWNUM
+      FROM (
+        SELECT DISTINCT
+          SORDERQ.ITMREF_0 AS PN,
+          PORDERP.PJT_0 AS ProjectNO,
+          PORDER.CUR_0 AS Currency,
+          CASE
+            WHEN PORDER.CUR_0 = 'USD' THEN SUM(PORDERP.NETPRI_0) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'MXN' THEN SUM(PORDERP.NETPRI_0 * 0.064) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'AED' THEN SUM(PORDERP.NETPRI_0 * 0.27) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'GBP' THEN SUM(PORDERP.NETPRI_0 * 1.31) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'QAR' THEN SUM(PORDERP.NETPRI_0 * 0.275) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'EUR' THEN SUM(PORDERP.NETPRI_0 * 1.18) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'SGD' THEN SUM(PORDERP.NETPRI_0 * 0.73) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'CNY' THEN SUM(PORDERP.NETPRI_0 * 0.145) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'RMB' THEN SUM(PORDERP.NETPRI_0 * 0.145) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+            WHEN PORDER.CUR_0 = 'HKD' THEN SUM(PORDERP.NETPRI_0 * 0.13) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDER.CUR_0 )
+          END AS USD,
+          SORDERQ.CREDAT_0
+        FROM EXPLOIT.PORDER PORDER
+           LEFT JOIN EXPLOIT.PORDERP PORDERP
+            ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+           LEFT JOIN EXPLOIT.SORDERQ SORDERQ
+            ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
+           LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
+            ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
+        WHERE 1=1
+		<if test="CategoryCode != null and CategoryCode != ''">
+            AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
+            AND ITMMASTER.ITMREF_0 = #{PnRoot}
+		</if>
+          AND PORDER.POHFCY_0 = #{Site}
+          AND PORDERP.PRHFCY_0 = #{Site}
+          AND SORDERQ.SALFCY_0 = #{Site}
+          AND (SORDERQ.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
+      ) AS T1  -- multi currency
+    ) AS T2  -- summaried to USD by projectNO
+    WHERE #{Limit}>=T2.ROWNUM  -- change the number, and below LastSPN
+  ) AS T3 -- T3 for PIVOT
+  PIVOT ( MAX(Cost) FOR LastCost IN (LastCost1,LastCost2,LastCost3,LastCost4,LastCost5,LastCost6,LastCost7,LastCost8,LastCost9,LastCost10) ) AS TPCOST
+  )
+
+  SELECT DISTINCT
+    Quote.*,
+    Sales.*,
+    SalesPJT.*,
+    ProjectCost.*
+  FROM Quote
+  LEFT JOIN Sales
+    ON Sales.SPN = Quote.PN
+  LEFT JOIN SalesPJT
+    ON SalesPJT.SPJTPN = Quote.PN
+  LEFT JOIN ProjectCost
+    ON ProjectCost.PJTCPN = Quote.PN
+	</select>
+	<select id="analysesPurchase" resultType="com.da.sageassistantserver.model.AnalysesPurchase">
+    WITH
+    Currency AS (
+        SELECT
+          CUR_0 AS Sour,
+          CURDEN_0 AS Dest,
+          CHGRAT_0 AS Rate,
+          CHGSTRDAT_0 AS StartDate,
+          LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+        FROM EXPLOIT.TABCHANGE
+        WHERE CURDEN_0 = #{Currency}
+    ),
+    ProjectCost AS (
+    SELECT DISTINCT
+      PORDERP.PJT_0 AS ProjectNO,
+      PORDERQ.POHNUM_0 AS PurchaseNO,
+      PORDERQ.NETCUR_0 AS Currency,
             PORDERP.NETPRI_0,
             PORDERQ.QTYPUU_0,
             SORDERQ.QTY_0,
-			-- Maybe Multi Purchase, Multi Currency
+      -- Maybe Multi Purchase, Multi Currency
             (SUM(PORDERP.NETPRI_0 * PORDERQ.QTYPUU_0) OVER (PARTITION BY PORDERP.PJT_0,PORDERQ.NETCUR_0))/SORDERQ.QTY_0 AS NetPrice,
-			PORDERQ.CREDAT_0 AS PurchaseDate,
-			-- We just need the first line result
-			ROW_NUMBER() OVER (PARTITION BY PORDERQ.NETCUR_0 ORDER BY PORDERQ.CREDAT_0 DESC) AS ROWNUM
-		FROM EXPLOIT.PORDERQ PORDERQ
-			INNER JOIN EXPLOIT.PORDERP PORDERP
-				ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 
-					AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-			INNER JOIN SORDERQ
-				ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
-				   OR (SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0 AND SORDERQ.YSOQ_PJTORI_0 != '')
-		WHERE
-			PORDERQ.POHFCY_0 = #{Site}
-			AND PORDERP.PRHFCY_0 = #{Site}
-			AND SORDERQ.SALFCY_0 = #{Site}
-			AND SORDERQ.ITMREF_0 = #{PnRoot}
-		)
+      PORDERQ.CREDAT_0 AS PurchaseDate,
+      -- We just need the first line result
+      ROW_NUMBER() OVER (PARTITION BY PORDERQ.NETCUR_0 ORDER BY PORDERQ.CREDAT_0 DESC) AS ROWNUM
+    FROM EXPLOIT.PORDERQ PORDERQ
+      INNER JOIN EXPLOIT.PORDERP PORDERP
+        ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+          AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN SORDERQ
+        ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
+           OR (SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0 AND SORDERQ.YSOQ_PJTORI_0 != '')
+    WHERE
+      PORDERQ.POHFCY_0 = #{Site}
+      AND PORDERP.PRHFCY_0 = #{Site}
+      AND SORDERQ.SALFCY_0 = #{Site}
+      AND SORDERQ.ITMREF_0 = #{PnRoot}
+    )
 
         -- Only get the first line result of each currency
-		SELECT * FROM (
-			SELECT	DISTINCT
-				ProjectCost.ProjectNO,
-				ProjectCost.PurchaseNO,
-				SUM(
-					CASE WHEN ProjectCost.Currency = #{Currency} 
-					THEN IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice, 0) ELSE IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice*Currency.Rate, 0)
-					END) OVER (PARTITION BY ProjectCost.ProjectNO)	AS NetPrice,
-				ProjectCost.PurchaseDate AS  PurchaseDate,
-				SORDERQ.CREDAT_0 AS ProjectDate,
-				ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, ProjectCost.ProjectNO DESC) AS ROWNUM
-			FROM SORDERQ
-			INNER JOIN ProjectCost
-					ON SORDERQ.YSOH_PJT_0 = ProjectCost.ProjectNO
-					OR SORDERQ.YSOQ_PJTORI_0 = ProjectCost.ProjectNO
-			LEFT JOIN Currency
-					ON Currency.Sour =  ProjectCost.Currency
-						AND Currency.Dest= #{Currency}
-						AND ProjectCost.PurchaseDate >= Currency.StartDate
-						AND Currency.EndDate > ProjectCost.PurchaseDate
-			WHERE SORDERQ.ITMREF_0 = #{PnRoot}
-				AND SORDERQ.SALFCY_0 = #{Site}
-		) AS T1
-		WHERE T1.ROWNUM = #{LastN}
-  </select>
-  <select id="analysesQuote" resultType="com.da.sageassistantserver.model.AnalysesQuote">
-	WITH
-	Currency AS (
-			SELECT 
-				CUR_0 AS Sour,
-				CURDEN_0 AS Dest,
-				CHGRAT_0 AS Rate,
-				CHGSTRDAT_0 AS StartDate,
-				LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-			FROM EXPLOIT.TABCHANGE 
-			WHERE CURDEN_0 = #{Currency}
-	),
-	Quote AS (
-	SELECT DISTINCT TOP 10
-		SQUOTED.SQHNUM_0 AS QuoteNO,
-		SQUOTED.QUODAT_0 AS QuoteDate,
-		SQUOTE.BPCORD_0 AS CustomerCode,
-		SQUOTE.BPCNAM_0 AS CustomerName,
-		SQUOTED.QTY_0 AS QTY,
-		IIF(SQUOTE.CUR_0 = #{Currency}, SQUOTED.NETPRI_0, SQUOTED.NETPRI_0*Currency.Rate) AS NetPrice,
-		SQUOTED.ORDFLG_0 AS OrderFlag,
-		SQUOTED.SOHNUM_0 AS OrderNO,
-		ROW_NUMBER() OVER (ORDER BY SQUOTED.CREDAT_0 DESC, SQUOTED.SQHNUM_0 DESC) AS ROWNUM
-	FROM SQUOTE
-	LEFT JOIN SQUOTED
-		ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
-	LEFT JOIN Currency
-	ON Currency.Sour =  SQUOTE.CUR_0
-			AND Currency.Dest=#{Currency}
-			AND SQUOTED.CREDAT_0 >= Currency.StartDate
-			AND Currency.EndDate > SQUOTED.CREDAT_0
-	WHERE 
-		SQUOTED.NETPRI_0 > 0
-		AND SQUOTED.ITMREF_0 = #{PnRoot}
-		AND SQUOTED.SALFCY_0 = #{Site}
-		AND SQUOTE.SALFCY_0 = #{Site}
-	ORDER BY ROWNUM ASC
-	)
-	
-	SELECT * FROM Quote
-	WHERE Quote.ROWNUM = #{LastN}
-  </select>
-  <select id="analysesSales" resultType="com.da.sageassistantserver.model.AnalysesSales">
-	WITH
-	Currency AS (
-			SELECT 
-				CUR_0 AS Sour,
-				CURDEN_0 AS Dest,
-				CHGRAT_0 AS Rate,
-				CHGSTRDAT_0 AS StartDate,
-				LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-			FROM EXPLOIT.TABCHANGE 
-			WHERE CURDEN_0 = #{Currency}
-	),
-	Sales AS (
-	SELECT DISTINCT TOP 10
-			SORDERP.SOHNUM_0 AS OrderNO,
-			SORDER.ORDDAT_0 AS OrderDate,
-			SORDER.BPCORD_0 AS CustomerCode,
-			SORDER.BPCNAM_0 AS CustomerName,
-			SORDERQ.QTY_0 AS QTY,
-			IIF(SORDER.CUR_0 = #{Currency}, SORDERP.NETPRI_0, SORDERP.NETPRI_0*Currency.Rate) AS NetPrice,
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, SORDERP.SOHNUM_0 DESC) AS ROWNUM
-	FROM SORDERP
-		INNER JOIN SORDERQ
-			ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
-				AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
-		LEFT JOIN SORDER
-			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
-		LEFT JOIN Currency
-			ON Currency.Sour =  SORDER.CUR_0
-				AND Currency.Dest= #{Currency}
-				AND SORDERP.CREDAT_0 >= Currency.StartDate
-				AND Currency.EndDate > SORDERP.CREDAT_0
-	WHERE
-		SORDERP.NETPRI_0 > 0
-		AND SORDERP.ITMREF_0 = #{PnRoot}
-		AND SORDERP.SALFCY_0 = #{Site}
-		AND SORDERQ.SALFCY_0 = #{Site}		
-	ORDER BY ROWNUM ASC
-	)
-	
-	SELECT * FROM Sales
-	WHERE Sales.ROWNUM = #{LastN}
-  </select>
+    SELECT * FROM (
+      SELECT  DISTINCT
+        ProjectCost.ProjectNO,
+        ProjectCost.PurchaseNO,
+        SUM(
+          CASE WHEN ProjectCost.Currency = #{Currency}
+          THEN IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice, 0) ELSE IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice*Currency.Rate, 0)
+          END) OVER (PARTITION BY ProjectCost.ProjectNO)  AS NetPrice,
+        ProjectCost.PurchaseDate AS  PurchaseDate,
+        SORDERQ.CREDAT_0 AS ProjectDate,
+        ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, ProjectCost.ProjectNO DESC) AS ROWNUM
+      FROM SORDERQ
+      INNER JOIN ProjectCost
+          ON SORDERQ.YSOH_PJT_0 = ProjectCost.ProjectNO
+          OR SORDERQ.YSOQ_PJTORI_0 = ProjectCost.ProjectNO
+      LEFT JOIN Currency
+          ON Currency.Sour =  ProjectCost.Currency
+            AND Currency.Dest= #{Currency}
+            AND ProjectCost.PurchaseDate >= Currency.StartDate
+            AND Currency.EndDate > ProjectCost.PurchaseDate
+      WHERE SORDERQ.ITMREF_0 = #{PnRoot}
+        AND SORDERQ.SALFCY_0 = #{Site}
+    ) AS T1
+    WHERE T1.ROWNUM = #{LastN}
+	</select>
+	<select id="analysesQuote" resultType="com.da.sageassistantserver.model.AnalysesQuote">
+  WITH
+  Currency AS (
+      SELECT
+        CUR_0 AS Sour,
+        CURDEN_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+      WHERE CURDEN_0 = #{Currency}
+  ),
+  Quote AS (
+  SELECT DISTINCT TOP 10
+    SQUOTED.SQHNUM_0 AS QuoteNO,
+    SQUOTED.QUODAT_0 AS QuoteDate,
+    SQUOTE.BPCORD_0 AS CustomerCode,
+    SQUOTE.BPCNAM_0 AS CustomerName,
+    SQUOTED.QTY_0 AS QTY,
+    IIF(SQUOTE.CUR_0 = #{Currency}, SQUOTED.NETPRI_0, SQUOTED.NETPRI_0*Currency.Rate) AS NetPrice,
+    SQUOTED.ORDFLG_0 AS OrderFlag,
+    SQUOTED.SOHNUM_0 AS OrderNO,
+    ROW_NUMBER() OVER (ORDER BY SQUOTED.CREDAT_0 DESC, SQUOTED.SQHNUM_0 DESC) AS ROWNUM
+  FROM SQUOTE
+  LEFT JOIN SQUOTED
+    ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
+  LEFT JOIN Currency
+  ON Currency.Sour =  SQUOTE.CUR_0
+      AND Currency.Dest=#{Currency}
+      AND SQUOTED.CREDAT_0 >= Currency.StartDate
+      AND Currency.EndDate > SQUOTED.CREDAT_0
+  WHERE
+    SQUOTED.NETPRI_0 > 0
+    AND SQUOTED.ITMREF_0 = #{PnRoot}
+    AND SQUOTED.SALFCY_0 = #{Site}
+    AND SQUOTE.SALFCY_0 = #{Site}
+  ORDER BY ROWNUM ASC
+  )
 
-  <select id="preAnalysesProjectProfit" resultType="com.da.sageassistantserver.model.ProjectProfit">
-	WITH T0 AS (
-	SELECT 
-		DISTINCT Iif(
-		SORDERQ.YSOQ_PJTORI_0 = '', SORDERQ.YSOH_PJT_0, 
-		SORDERQ.YSOQ_PJTORI_0
-		) AS ProjectNO, 
-		SORDERQ.SOHNUM_0, 
-		SORDERP.ITMREF_0, 
-		SORDERP.ITMDES_0,
-    SORDERP.TSICOD_1, 
-		SORDERQ.QTY_0, 
+  SELECT * FROM Quote
+  WHERE Quote.ROWNUM = #{LastN}
+	</select>
+	<select id="analysesSales" resultType="com.da.sageassistantserver.model.AnalysesSales">
+  WITH
+  Currency AS (
+      SELECT
+        CUR_0 AS Sour,
+        CURDEN_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+      WHERE CURDEN_0 = #{Currency}
+  ),
+  Sales AS (
+  SELECT DISTINCT TOP 10
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDER.BPCORD_0 AS CustomerCode,
+      SORDER.BPCNAM_0 AS CustomerName,
+      SORDERQ.QTY_0 AS QTY,
+      IIF(SORDER.CUR_0 = #{Currency}, SORDERP.NETPRI_0, SORDERP.NETPRI_0*Currency.Rate) AS NetPrice,
+      ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, SORDERP.SOHNUM_0 DESC) AS ROWNUM
+  FROM SORDERP
+    INNER JOIN SORDERQ
+      ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+        AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+    LEFT JOIN SORDER
+      ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+    LEFT JOIN Currency
+      ON Currency.Sour =  SORDER.CUR_0
+        AND Currency.Dest= #{Currency}
+        AND SORDERP.CREDAT_0 >= Currency.StartDate
+        AND Currency.EndDate > SORDERP.CREDAT_0
+  WHERE
+    SORDERP.NETPRI_0 > 0
+    AND SORDERP.ITMREF_0 = #{PnRoot}
+    AND SORDERP.SALFCY_0 = #{Site}
+    AND SORDERQ.SALFCY_0 = #{Site}
+  ORDER BY ROWNUM ASC
+  )
+
+  SELECT * FROM Sales
+  WHERE Sales.ROWNUM = #{LastN}
+	</select>
+
+	<select id="preAnalysesProjectProfit" resultType="com.da.sageassistantserver.model.ProjectProfit">
+  WITH
+  T0 AS (
+  SELECT DISTINCT
+    Iif(SORDERQ.YSOQ_PJTORI_0 = '', SORDERQ.YSOH_PJT_0, SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
+    SORDERQ.SOHNUM_0,
+    SORDERP.ITMREF_0,
+    SORDERP.ITMDES_0,
+    SORDERP.TSICOD_1,
+    SORDERQ.QTY_0,
     SORDERP.CREDAT_0,
-		SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS ProjectPrice, 
-		Sum(
-		SORDERP.NETPRIATI_0 * SORDERQ.QTY_0
-		) OVER (PARTITION BY SORDERP.SOHNUM_0) AS OrderPrice 
-	FROM 
-		EXPLOIT.SORDERQ AS SORDERQ 
-		INNER JOIN EXPLOIT.SORDERP AS SORDERP ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0 
-		AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0 
-		AND SORDERQ.SALFCY_0 = #{Site} 
-		AND SORDERP.SALFCY_0 = #{Site} 
-		AND SORDERP.NETPRIATI_0 &gt; 0
-		AND SORDERP.CREDAT_0 &gt; CONVERT(DATETIME, #{DateFrom}, 120)
-	), 
-	T2 AS (
-	SELECT 
-		T0.ProjectNO, 
-		T0.SOHNUM_0 AS OrderNO, 
-		T0.ITMREF_0 AS PN, 
-		T0.ITMDES_0 AS Description,
-    T0.TSICOD_1 AS CategoryCode, 
-		T0.QTY_0 AS QTY, 
+    SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS ProjectSalesPrice
+  FROM
+    EXPLOIT.SORDERQ AS SORDERQ
+  INNER JOIN EXPLOIT.SORDERP AS SORDERP
+    ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+      AND SORDERQ.SALFCY_0 = #{Site}
+      AND SORDERP.SALFCY_0 = #{Site}
+      AND SORDERP.NETPRIATI_0 &gt; 0
+      AND SORDERP.CREDAT_0 &gt; CONVERT(DATETIME, #{DateFrom}, 120)
+  ),
+  T1 AS (
+  SELECT
+    T0.ProjectNO,
+    T0.SOHNUM_0 AS OrderNO,
+    T0.ITMREF_0 AS PN,
+    T0.ITMDES_0 AS Description,
+    T0.TSICOD_1 AS CategoryCode,
+    T0.QTY_0 AS QTY,
     T0.CREDAT_0 AS OrderDate,
-		SORDER.ORDINVATIL_0 AS OrderLocalPrice, 
-		SORDER.ORDINVATIL_0 * (T0.ProjectPrice / T0.OrderPrice) AS ProjectLocalPrice, 
-		T0.OrderPrice 
-	FROM 
-		T0 
-		INNER JOIN EXPLOIT.SORDER SORDER ON T0.SOHNUM_0 = SORDER.SOHNUM_0
-	), 
-	T3 AS (
-	SELECT 
-		DISTINCT PORDERP.PJT_0, 
-		Sum(PORDERQ.LINAMTCPR_0) OVER (PARTITION BY PORDERP.PJT_0) AS ProjectLocalCost 
-	FROM 
-		EXPLOIT.PORDERP AS PORDERP 
-		INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
-		AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0 
-	WHERE 
-		PORDERQ.PRHFCY_0 = #{Site} 
-		AND PORDERP.PRHFCY_0 = #{Site}
-	) 
-	SELECT 
-    T2.*, 
-		T3.ProjectLocalCost, 
-		T2.ProjectLocalPrice - T3.ProjectLocalCost AS Profit 
-	FROM 
-		T2 
-	LEFT JOIN T3 ON T2.ProjectNO = T3.PJT_0 
-  </select>
+    T0.ProjectSalesPrice,
+    SORDER.CUR_0 AS SalesCurrency,
+    SORDER.CHGRAT_0 AS Rate,
+    T0.ProjectSalesPrice * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0) AS ProjectSalesLocalPrice
+  FROM
+    T0
+  INNER JOIN EXPLOIT.SORDER SORDER
+    ON T0.SOHNUM_0 = SORDER.SOHNUM_0
+  ),
+  T2 AS (
+  SELECT DISTINCT
+    PORDERP.PJT_0,
+    PORDERQ.CPRCUR_0 AS LocalCurrency,
+    Sum(PORDERQ.LINAMTCPR_0 + PORDERQ.AMTTAXLIN1_0 + PORDERQ.AMTTAXLIN2_0 + PORDERQ.AMTTAXLIN3_0) OVER (PARTITION BY PORDERP.PJT_0) AS ProjectLocalCost
+  FROM
+    EXPLOIT.PORDERP AS PORDERP
+  INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+   ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+    AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+  WHERE
+    PORDERQ.PRHFCY_0 = #{Site}
+    AND PORDERP.PRHFCY_0 = #{Site}
+  )
+  SELECT
+    T1.*,
+    T2.ProjectLocalCost,
+    T1.ProjectSalesLocalPrice - T2.ProjectLocalCost AS Profit
+  FROM
+    T1
+  LEFT JOIN T2 ON T1.ProjectNO = T2.PJT_0
+  WHERE
+    T2.ProjectLocalCost IS NOT null
+  ORDER BY Profit ASC
+	</select>
 </mapper>

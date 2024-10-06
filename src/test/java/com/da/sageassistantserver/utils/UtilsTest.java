@@ -1,10 +1,10 @@
-/******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2023-03-11 15:45:58                               *
- * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-18 01:04:44                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
- *****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2023-03-11 15:45:58                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:53:22                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
@@ -16,21 +16,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 public class UtilsTest {
-
-  @Test
-  void testIsNullOrEmpty() {
-    Assertions.assertTrue(Utils.isNullOrEmpty(""));
-    Assertions.assertTrue(Utils.isNullOrEmpty(" "));
-    Assertions.assertTrue(Utils.isNullOrEmpty(null));
-  }
 
   // @Test
   // void testIsServerAtZhuhai() {
@@ -62,7 +55,12 @@ public class UtilsTest {
 
   @Test
   void testFindFiles() {
-    String classLoaderPath = Thread.currentThread().getContextClassLoader().getResource("").getPath().toString();
+    String classLoaderPath = Thread
+      .currentThread()
+      .getContextClassLoader()
+      .getResource("")
+      .getPath()
+      .toString();
     log.debug(classLoaderPath);
     // maven doesn't copy the test resource, why?
     String fPath = classLoaderPath + "../../src/test/resources";
@@ -82,16 +80,41 @@ public class UtilsTest {
 
   @Test
   void testGetFileExt() {
-    Assertions.assertEquals(Utils.getFileExt("filename.ext"), "EXT");
-    Assertions.assertEquals(Utils.getFileExt("filename.ext.ext"), "EXT");
-    Assertions.assertEquals(Utils.getFileExt("filename"), "");
+    Assertions.assertEquals(StringUtils.getFilename("/"), "");
+    Assertions.assertEquals(
+      Optional.ofNullable(StringUtils.getFilename("/")).orElse(""),
+      ""
+    );
+
+    Assertions.assertEquals(
+      StringUtils.getFilenameExtension("filename.ext"),
+      "ext"
+    );
+    Assertions.assertEquals(
+      StringUtils.getFilenameExtension("filename.ext.ext"),
+      "ext"
+    );
+    Assertions.assertEquals(
+      Optional
+        .ofNullable(StringUtils.getFilenameExtension("filename"))
+        .orElse(""),
+      ""
+    );
+    Assertions.assertEquals(
+      Optional.ofNullable(StringUtils.getFilenameExtension("/")).orElse(""),
+      ""
+    );
   }
 
   @Test
   void testFormatDate() {
     Assertions.assertEquals("", Utils.formatDate(null));
-    Assertions.assertTrue(Utils.formatDate(new Date()).matches("\\d{4}-\\d{2}-\\d{2}"));
-    Assertions.assertFalse((new Date()).toString().matches("\\d{4}-\\d{2}-\\d{2}"));
+    Assertions.assertTrue(
+      Utils.formatDate(new Date()).matches("\\d{4}-\\d{2}-\\d{2}")
+    );
+    Assertions.assertFalse(
+      (new Date()).toString().matches("\\d{4}-\\d{2}-\\d{2}")
+    );
     log.debug((new Date()).toString());
   }
 
@@ -106,29 +129,65 @@ public class UtilsTest {
 
   @Test
   void testMakeShortPn() {
-    Assertions.assertEquals(Utils.makeShortPn("98A1234567890_CPD_P-11_D"), "98A12345678_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("98A1234567890_CPD_P-11_D"),
+      "98A12345678_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("98A1234567890_CPD-11_D"), "98A12345678_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("98A1234567890_CPD-11_D"),
+      "98A12345678_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("98A1234567890G01P01_NQ_D_-"), "98A12345678_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("98A1234567890G01P01_NQ_D_-"),
+      "98A12345678_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("98A1234567890G01P01NQ_D_-"), "98A12345678_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("98A1234567890G01P01NQ_D_-"),
+      "98A12345678_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("9C12345G01P01NQ_D_-"), "9C12345_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("9C12345G01P01NQ_D_-"),
+      "9C12345_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("9C12345-67G01P01NQ_D_-"), "9C12345-67_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("9C12345-67G01P01NQ_D_-"),
+      "9C12345-67_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("9C12345G01P01NQ-11_D_-"), "9C12345_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("9C12345G01P01NQ-11_D_-"),
+      "9C12345_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("856A1234567890G01P01NQ_D"), "856A1234_D");
+    Assertions.assertEquals(
+      Utils.makeShortPn("856A1234567890G01P01NQ_D"),
+      "856A1234_D"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("RRT123456G01P01NQ_A_-"), "RRT123456_A");
+    Assertions.assertEquals(
+      Utils.makeShortPn("RRT123456G01P01NQ_A_-"),
+      "RRT123456_A"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("HU12345G01P01NQ_A_-"), "HU12345_A");
+    Assertions.assertEquals(
+      Utils.makeShortPn("HU12345G01P01NQ_A_-"),
+      "HU12345_A"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("330A12345678G01P01NQ_A_-"), "330A123456_A");
+    Assertions.assertEquals(
+      Utils.makeShortPn("330A12345678G01P01NQ_A_-"),
+      "330A123456_A"
+    );
 
-    Assertions.assertEquals(Utils.makeShortPn("9401M01G01P01NQ_A_-"), "9401M01_A");
+    Assertions.assertEquals(
+      Utils.makeShortPn("9401M01G01P01NQ_A_-"),
+      "9401M01_A"
+    );
 
     Assertions.assertEquals(Utils.makeShortPn("A12345-1_A_-"), "A12345_A");
 
@@ -142,13 +201,18 @@ public class UtilsTest {
 
   @Test
   void testComputeMd5() {
-    String md5 = Utils.computerMd5(new File("Y:\\Drawing\\0\\0FA\\BSO\\0FABSOU0025-[A].tif"));
+    String md5 = Utils.computerMd5(
+      new File("Y:\\Drawing\\0\\0FA\\BSO\\0FABSOU0025-[A].tif")
+    );
     log.info(md5);
   }
 
   @Test
   void testParserDateString() {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa", Locale.ENGLISH);
+    SimpleDateFormat dateFormat = new SimpleDateFormat(
+      "MM/dd/yyyy hh:mm:ss aa",
+      Locale.ENGLISH
+    );
     Date date;
     try {
       date = dateFormat.parse("11/28/2022 12:00:00 AM");
@@ -161,7 +225,10 @@ public class UtilsTest {
 
   @Test
   void testChangeFileTime() throws IOException {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa", Locale.ENGLISH);
+    SimpleDateFormat dateFormat = new SimpleDateFormat(
+      "MM/dd/yyyy hh:mm:ss aa",
+      Locale.ENGLISH
+    );
     Date date;
     try {
       date = dateFormat.parse("11/28/2022 12:00:00 AM");
@@ -172,18 +239,24 @@ public class UtilsTest {
 
     File file = new File("C:/var/HU80001-1_B.pdf");
     file.setLastModified(date.getTime());
-
   }
 
   @Test
   void testSplitStringByByteSize() {
-    String testString = "这是一个测试字符串，用于验证字符串切分功能是否正常工作。" +
-        "这是一个测试字符串，用于验证字符串切分功能是否正常工作。" +
-        "这是一个测试字符串，用于验证字符串切分功能是否正常工作。";
+    String testString =
+      "这是一个测试字符串，用于验证字符串切分功能是否正常工作。" +
+      "这是一个测试字符串，用于验证字符串切分功能是否正常工作。" +
+      "这是一个测试字符串，用于验证字符串切分功能是否正常工作。";
     List<String> splitStrings = Utils.splitStringByByteSize(testString, 20);
     for (String s : splitStrings) {
       log.debug(s);
     }
+  }
 
+  @Test
+  void testRightPad() {
+    Assertions.assertEquals(Utils.withRightPad("123", 5, '0'), "12300");
+    Assertions.assertEquals(Utils.withRightPad("123", 5, ' '), "123  ");
+    log.debug(Utils.withRightPad("123", 5, '\u3000') + "end");
   }
 }

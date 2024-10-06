@@ -9,19 +9,17 @@
 
 package com.da.sageassistantserver.model;
 
-import java.util.Date;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.util.Date;
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class CurrencyHistory {
 
-    private String Sour;
-    private String Dest;
-    private Float Rate;
-    private Date StartDate;
-    private Date EndDate;
+  private String Sour;
+  private String Dest;
+  private Float Rate;
+  private Date StartDate;
+  private Date EndDate;
 }

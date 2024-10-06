@@ -1,12 +1,22 @@
 {
-    "editor.codeActionsOnSave": { 
-        "source.organizeImports": true 
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
     },
     "java.configuration.updateBuildConfiguration": "automatic",
     "boot-java.change-detection.on": true,
     "[java]": {
-        "editor.defaultFormatter": "redhat.java"
+        "editor.defaultFormatter": "hyperproof.vscode-ext-prettier-java"
     },
+    "editor.rulers": [
+        {
+            "column": 80,
+            "color": "#4000ff"
+        },
+        {
+            "column": 120,
+            "color": "#d6225e"
+        }
+    ],
     "cSpell.customDictionaries": {
         "project-words": {
             "name": "project-words",
@@ -22,8 +32,20 @@
     "auto-header-plus.commentElementsValue": {
         "CopyRight": "Dedienne Aerospace China ZhuHai"
     },
-    "auto-header-plus.style.1": {
+    "auto-header-plus.style.0": {
         "lineWidth": 120
-    }
-
+    },
+    "java.format.settings.url": "",
+    "java.format.settings.profile": "",
+    "auto-header-plus.commentElements": [
+        "Author",
+        "CreatedDate",
+        "LastEditors",
+        "LastEditDate",
+        "CopyRight"
+    ],
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.stickyTabStops": true,
+    "java.format.enabled": false
 }

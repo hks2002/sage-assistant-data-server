@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2024-06-26 22:07:14                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-08 15:20:18                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/*********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                            *
+ * @CreatedDate           : 2024-06-26 22:07:14                                                                      *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
+ * @LastEditDate          : 2024-12-25 14:48:40                                                                      *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
+ ********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
@@ -19,22 +19,31 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ImageTools {
-  public static boolean addTextFull(byte imageIn[], String formatName, OutputStream os, String wmText, float opacity,
-      int angle) {
+
+  public static boolean addTextFull(
+    byte imageIn[],
+    String formatName,
+    OutputStream os,
+    String wmText,
+    float opacity,
+    int angle
+  ) {
     try {
       // using ImageReader, to get all pages
-      ImageInputStream is = new MemoryCacheImageInputStream(new ByteArrayInputStream(imageIn));
-      ImageReader imageReader = ImageIO.getImageReadersByFormatName(formatName).next();
+      ImageInputStream is = new MemoryCacheImageInputStream(
+        new ByteArrayInputStream(imageIn)
+      );
+      ImageReader imageReader = ImageIO
+        .getImageReadersByFormatName(formatName)
+        .next();
       imageReader.setInput(is);
 
       int maxWidth = 0;
@@ -53,7 +62,11 @@ public class ImageTools {
         maxWidth = Math.max(maxWidth, image.getWidth());
       }
 
-      BufferedImage mergedImage = new BufferedImage(maxWidth, totalHeight, iTYPE);
+      BufferedImage mergedImage = new BufferedImage(
+        maxWidth,
+        totalHeight,
+        iTYPE
+      );
       Graphics2D g2d = mergedImage.createGraphics();
 
       int currentHeight = 0;
@@ -67,16 +80,19 @@ public class ImageTools {
 
       // write merged image to output stream, use png format for low file size
       ImageIO.write(mergedImage, "png", os);
-
     } catch (Exception e) {
-      e.printStackTrace();
-      log.error(e.getLocalizedMessage());
+      log.error("", e);
       return false;
     }
     return true;
   }
 
-  private static void addTextFull(BufferedImage image, String wmText, float opacity, int angle) {
+  private static void addTextFull(
+    BufferedImage image,
+    String wmText,
+    float opacity,
+    int angle
+  ) {
     // these 3 parameters can be changed, but it's the best practice value
     int heightGapN = 10;
     int widthGapN = 1;
@@ -89,15 +105,32 @@ public class ImageTools {
       g.setColor(Color.BLACK);
     } else {
       g.setColor(Color.LIGHT_GRAY);
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+      g.setComposite(
+        AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity)
+      );
       g.rotate(-Math.toRadians(angle), 0, image.getHeight()); // rotate with left-bottom
     }
 
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-    g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-    g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-    g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    g.setRenderingHint(
+      RenderingHints.KEY_ANTIALIASING,
+      RenderingHints.VALUE_ANTIALIAS_ON
+    );
+    g.setRenderingHint(
+      RenderingHints.KEY_RENDERING,
+      RenderingHints.VALUE_RENDER_QUALITY
+    );
+    g.setRenderingHint(
+      RenderingHints.KEY_ALPHA_INTERPOLATION,
+      RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY
+    );
+    g.setRenderingHint(
+      RenderingHints.KEY_STROKE_CONTROL,
+      RenderingHints.VALUE_STROKE_PURE
+    );
+    g.setRenderingHint(
+      RenderingHints.KEY_TEXT_ANTIALIASING,
+      RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+    );
 
     FontMetrics fontMetrics = g.getFontMetrics();
     Rectangle2D rect = fontMetrics.getStringBounds(wmText, g);
@@ -109,16 +142,31 @@ public class ImageTools {
       g.drawString(wmText, 0, image.getHeight());
     } else {
       // (0,0) is top left
-      for (int y = image.getHeight(); y > 0; y = y - textH * heightGapN * ratio) {
-        for (int x = 0; x < image.getWidth() * 1.5; x = x + (textW * widthGapN * ratio * 3) / 4) {
+      for (
+        int y = image.getHeight();
+        y > 0;
+        y = y - textH * heightGapN * ratio
+      ) {
+        for (
+          int x = 0;
+          x < image.getWidth() * 1.5;
+          x = x + (textW * widthGapN * ratio * 3) / 4
+        ) {
           g.drawString(wmText, x, y);
         }
       }
       // after rotate, need add more
       if (angle != 0) {
-        for (int y = image.getHeight() + textH * heightGapN * ratio; y < image.getHeight() * 2; y = y
-            + textH * heightGapN * ratio) {
-          for (int x = 0; x < image.getWidth() * 1.5; x = x + (textW * widthGapN * ratio * 3) / 4) {
+        for (
+          int y = image.getHeight() + textH * heightGapN * ratio;
+          y < image.getHeight() * 2;
+          y = y + textH * heightGapN * ratio
+        ) {
+          for (
+            int x = 0;
+            x < image.getWidth() * 1.5;
+            x = x + (textW * widthGapN * ratio * 3) / 4
+          ) {
             g.drawString(wmText, x, y);
           }
         }

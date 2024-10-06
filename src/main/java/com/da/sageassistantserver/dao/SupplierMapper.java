@@ -1,67 +1,140 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2022-03-26 17:55:00                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-24 15:01:22                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/*********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                            *
+ * @CreatedDate           : 2022-03-26 17:55:00                                                                      *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
+ * @LastEditDate          : 2024-12-25 14:35:14                                                                      *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
+ ********************************************************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
 import com.da.sageassistantserver.model.BusinessPartnerName;
-import com.da.sageassistantserver.model.SupplierDelayHistory;
-import com.da.sageassistantserver.model.SupplierDeliveryHistory;
 import com.da.sageassistantserver.model.SupplierDetails;
+import com.da.sageassistantserver.model.SupplierNCHistory;
+import com.da.sageassistantserver.model.SupplierNCSummary;
 import com.da.sageassistantserver.model.SupplierName;
-import com.da.sageassistantserver.model.SupplierOpenItems;
+import com.da.sageassistantserver.model.SupplierOTD;
+import com.da.sageassistantserver.model.SupplierOTDTop;
+import com.da.sageassistantserver.model.SupplierOrder;
+import com.da.sageassistantserver.model.SupplierQPY;
+import com.da.sageassistantserver.model.SupplierQPYTop;
 import com.da.sageassistantserver.model.SupplierSummaryAmount;
-import com.da.sageassistantserver.model.SupplierSummaryQty;
+import com.da.sageassistantserver.model.SupplierSummaryAmountTop;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-
 @Mapper
 public interface SupplierMapper {
-  List<SupplierName> findSupplierByCodeOrName(@Param("SupplierCodeOrName") String SupplierCodeOrName,
-                                              @Param("Count") Integer Count);
+  List<SupplierName> findSupplierByCodeOrName(
+    @Param("SupplierCodeOrName") String SupplierCodeOrName,
+    @Param("Count") Integer Count
+  );
+  List<BusinessPartnerName> findBusinessPartnerByCode(
+    @Param("BPCode") String BPCode
+  );
 
-  List<BusinessPartnerName> findBusinessPartnerByCode(@Param("BPCode") String BPCode);
+  List<SupplierDetails> findSupplierDetailsByCode(
+    @Param("SupplierCode") String SupplierCode
+  );
 
-  List<SupplierDetails> findSupplierDetailsByCode(@Param("SupplierCode") String SupplierCode);
+  List<SupplierSummaryAmount> findSupplierSumAmount(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Interval") String Interval
+  );
 
-  List<SupplierSummaryAmount> findSupplierOpenAmount(@Param("SupplierCode") String SupplierCode);
+  List<SupplierSummaryAmountTop> findSupplierSumAmountTop(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Limit") Integer Limit
+  );
 
-  List<SupplierSummaryQty> findSupplierOpenProjectQty(@Param("SupplierCode") String SupplierCode);
+  List<SupplierOTD> findSupplierOTD(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Interval") String Interval
+  );
 
-  List<SupplierSummaryQty> findSupplierOpenItemQty(@Param("SupplierCode") String SupplierCode);
+  List<SupplierOTDTop> findSupplierOTDTop(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Limit") Integer Limit,
+    @Param("Sort") String Sort
+  );
 
-  List<SupplierSummaryQty> findSupplierOpenProductQty(@Param("SupplierCode") String SupplierCode);
+  List<SupplierQPY> findSupplierQPY(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Interval") String Interval
+  );
 
-  List<SupplierOpenItems> findSupplierOpenItems(@Param("SupplierCode") String SupplierCode);
+  List<SupplierQPYTop> findSupplierQPYTop(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Limit") Integer Limit,
+    @Param("Sort") String Sort
+  );
 
-  List<SupplierSummaryAmount> findSupplierTotalAmount(@Param("SupplierCode") String SupplierCode,
-                                                      @Param("DateFrom") String DateFrom,
-                                                      @Param("DateTo") String DateTo);
+  List<SupplierNCSummary> findSupplierNCSummary(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Interval") String Interval
+  );
 
-  List<SupplierSummaryQty> findSupplierTotalProjectQty(@Param("SupplierCode") String SupplierCode,
-                                                       @Param("DateFrom") String DateFrom,
-                                                       @Param("DateTo") String DateTo);
+  Integer findSupplierOrdersCnt(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("OrderStatus") String OrderStatus
+  );
 
-  List<SupplierSummaryQty> findSupplierTotalItemQty(@Param("SupplierCode") String SupplierCode,
-                                                    @Param("DateFrom") String DateFrom, @Param("DateTo") String DateTo);
+  List<SupplierOrder> findSupplierOrders(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("OrderStatus") String OrderStatus,
+    @Param("Offset") Integer Offset,
+    @Param("Limit") Integer Limit
+  );
 
-  List<SupplierSummaryQty> findSupplierTotalProductQty(@Param("SupplierCode") String SupplierCode,
-                                                       @Param("DateFrom") String DateFrom,
-                                                       @Param("DateTo") String DateTo);
+  Integer findSupplierNCHistoryCnt(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo
+  );
 
-  List<SupplierDeliveryHistory> findSupplierDeliveryHistory(@Param("SupplierCode") String SupplierCode,
-                                                            @Param("DateFrom") String DateFrom,
-                                                            @Param("DateTo") String DateTo);
-
-  List<SupplierDelayHistory> findSupplierDelayHistory(@Param("SupplierCode") String SupplierCode,
-                                                      @Param("DateFrom") String DateFrom,
-                                                      @Param("DateTo") String DateTo);
-
-  String findPurchaseDate(@Param("PurchaseNO") String PurchaseNO);
+  List<SupplierNCHistory> findSupplierNCHistory(
+    @Param("Site") String Site,
+    @Param("SupplierType") String SupplierType,
+    @Param("SupplierCode") String SupplierCode,
+    @Param("DateFrom") String DateFrom,
+    @Param("DateTo") String DateTo,
+    @Param("Offset") Integer Offset,
+    @Param("Limit") Integer Limit
+  );
 }

@@ -1,0 +1,20 @@
+.footer {
+  background-color: grey;
+}
+
+.footer div {
+  color: white;
+  font-size: 10px;
+}
+
+.q-link--focusable {
+  cursor: pointer
+}
+
+tbody tr:nth-child(even) {
+  background: #eeeeee;
+}
+
+.q-table--dense .q-table__top {
+  min-height: 52px;
+}

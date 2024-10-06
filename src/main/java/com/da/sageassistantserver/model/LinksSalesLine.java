@@ -8,27 +8,26 @@
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Date;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.sql.Date;
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class LinksSalesLine {
-    private String OrderNO;
-    private String OrderLine;
-    private String OrderProjectNO;
-    private String OrderTrackingNO;
-    private String OrderCustomerCode;
-    private String OrderCustomerName;
-    private Date OrderDate;
-    private String OrderPN;
-    private String OrderPNDescription;
-    private Float OrderQty;
-    private String OrderUnit;
-    private Double OrderAmount;
-    private String OrderCurrency;
-    private Integer OrderStatus;
+
+  private String OrderNO;
+  private String OrderLine;
+  private String OrderProjectNO;
+  private String OrderTrackingNO;
+  private String OrderCustomerCode;
+  private String OrderCustomerName;
+  private Date OrderDate;
+  private String OrderPN;
+  private String OrderPNDescription;
+  private Float OrderQty;
+  private String OrderUnit;
+  private Double OrderAmount;
+  private String OrderCurrency;
+  private Integer OrderStatus;
 }

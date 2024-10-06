@@ -1,24 +1,19 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2024-06-18 17:36:09                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-08-06 18:04:32                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/*********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                            *
+ * @CreatedDate           : 2024-06-18 17:36:09                                                                      *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
+ * @LastEditDate          : 2024-12-25 14:48:55                                                                      *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
+ ********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
-
-import java.awt.FontMetrics;
-import java.io.OutputStream;
-import java.util.HashMap;
-
-import javax.swing.JLabel;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.io.RandomAccessSourceFactory;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -28,11 +23,15 @@ import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.RandomAccessFileOrArray;
 import com.itextpdf.text.pdf.codec.TiffImage;
-
+import java.awt.FontMetrics;
+import java.io.OutputStream;
+import java.util.HashMap;
+import javax.swing.JLabel;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ITextTools {
+
   /**
    * pdf watermark
    *
@@ -50,8 +49,16 @@ public class ITextTools {
    * @return true if success
    *         false if fail
    */
-  public static boolean addTextOne(byte[] pdfIn, OutputStream os, String wmText, int fontSize, float opacity, int angle,
-      float positionX, float positionY) {
+  public static boolean addTextOne(
+    byte[] pdfIn,
+    OutputStream os,
+    String wmText,
+    int fontSize,
+    float opacity,
+    int angle,
+    float positionX,
+    float positionY
+  ) {
     PdfReader reader = null;
     PdfStamper stamper = null;
     try {
@@ -75,7 +82,12 @@ public class ITextTools {
       stamper.setMoreInfo(info);
 
       // Encryption
-      stamper.setEncryption("".getBytes(), "".getBytes(), PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_128);
+      stamper.setEncryption(
+        "".getBytes(),
+        "".getBytes(),
+        PdfWriter.ALLOW_PRINTING,
+        PdfWriter.ENCRYPTION_AES_128
+      );
 
       PdfGState gs = new PdfGState();
       gs.setFillOpacity(opacity);
@@ -84,7 +96,9 @@ public class ITextTools {
       BaseFont baseFont = BaseFont.createFont();
       PdfContentByte content;
 
-      float calculatedPositionY = (positionY < 0) ? reader.getPageSize(1).getHeight() + positionY : positionY;
+      float calculatedPositionY = (positionY < 0)
+        ? reader.getPageSize(1).getHeight() + positionY
+        : positionY;
 
       int total = reader.getNumberOfPages() + 1;
       for (int i = 1; i < total; i++) {
@@ -94,20 +108,29 @@ public class ITextTools {
         content.setFontAndSize(baseFont, fontSize);
         content.setColorFill(BaseColor.LIGHT_GRAY);
         content.setGState(gs);
-        content.showTextAligned(Element.ALIGN_LEFT, wmText, positionX, calculatedPositionY, angle);
+        content.showTextAligned(
+          Element.ALIGN_LEFT,
+          wmText,
+          positionX,
+          calculatedPositionY,
+          angle
+        );
         content.endText();
       }
 
       return true;
+    } catch (InvalidPdfException e) {
+      log.error("{}", "Not a validate pdf file");
+      return false;
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("{}", e);
       return false;
     } finally {
       if (stamper != null) {
         try {
           stamper.close();
         } catch (Exception e) {
-          e.printStackTrace();
+          log.error("{}", e);
         }
       }
       if (reader != null) {
@@ -129,8 +152,23 @@ public class ITextTools {
    * @return true if success
    *         false if fail
    */
-  public static boolean addTextHeader(byte[] pdfIn, OutputStream os, String wmText, int fontSize, float opacity) {
-    return addTextOne(pdfIn, os, wmText, fontSize, opacity, 0, 0.0f, -1.0f * fontSize);
+  public static boolean addTextHeader(
+    byte[] pdfIn,
+    OutputStream os,
+    String wmText,
+    int fontSize,
+    float opacity
+  ) {
+    return addTextOne(
+      pdfIn,
+      os,
+      wmText,
+      fontSize,
+      opacity,
+      0,
+      0.0f,
+      -1.0f * fontSize
+    );
   }
 
   /**
@@ -146,7 +184,13 @@ public class ITextTools {
    * @return true if success
    *         false if fail
    */
-  public static boolean addTextFooter(byte[] pdfIn, OutputStream os, String wmText, int fontSize, float opacity) {
+  public static boolean addTextFooter(
+    byte[] pdfIn,
+    OutputStream os,
+    String wmText,
+    int fontSize,
+    float opacity
+  ) {
     return addTextOne(pdfIn, os, wmText, fontSize, opacity, 0, 0.0f, 0.0f);
   }
 
@@ -162,7 +206,13 @@ public class ITextTools {
    * @param angle   angle (0-360)
    * @return
    */
-  public static boolean addTextFull(byte pdfIn[], OutputStream os, String wmText, float opacity, int angle) {
+  public static boolean addTextFull(
+    byte pdfIn[],
+    OutputStream os,
+    String wmText,
+    float opacity,
+    int angle
+  ) {
     PdfReader reader = null;
     PdfStamper stamper = null;
     try {
@@ -186,7 +236,12 @@ public class ITextTools {
       stamper.setMoreInfo(info);
 
       // Encryption
-      stamper.setEncryption("".getBytes(), "".getBytes(), PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_128);
+      stamper.setEncryption(
+        "".getBytes(),
+        "".getBytes(),
+        PdfWriter.ALLOW_PRINTING,
+        PdfWriter.ENCRYPTION_AES_128
+      );
 
       PdfGState gs = new PdfGState();
       gs.setFillOpacity(opacity);
@@ -215,29 +270,46 @@ public class ITextTools {
         content = stamper.getOverContent(i); // add watermark over the content
         // content = stamper.getUnderContent(i); // add watermark under the content
 
-        for (int height = 0; height < pageRect.getHeight(); height = height + textH * heightGapN * ratio) {
-          for (int width = 0; width < pageRect.getWidth(); width = width + (textW * widthGapN * ratio * 3) / 4) {
+        for (
+          int height = 0;
+          height < pageRect.getHeight();
+          height = height + textH * heightGapN * ratio
+        ) {
+          for (
+            int width = 0;
+            width < pageRect.getWidth();
+            width = width + (textW * widthGapN * ratio * 3) / 4
+          ) {
             content.saveState();
             content.beginText();
             content.setFontAndSize(baseFont, fontSize * ratio);
             content.setColorFill(BaseColor.LIGHT_GRAY);
             content.setGState(gs);
-            content.showTextAligned(Element.ALIGN_LEFT, wmText, width, height, angle);
+            content.showTextAligned(
+              Element.ALIGN_LEFT,
+              wmText,
+              width,
+              height,
+              angle
+            );
             content.endText();
           }
         }
       }
 
       return true;
+    } catch (InvalidPdfException e) {
+      log.error("{}", "Not a validate pdf file");
+      return false;
     } catch (Exception e) {
-      log.error(e.getLocalizedMessage());
+      log.error("{}", e);
       return false;
     } finally {
       if (stamper != null) {
         try {
           stamper.close();
         } catch (Exception e) {
-          e.printStackTrace();
+          log.error("{}", e);
         }
       }
       if (reader != null) {
@@ -255,13 +327,16 @@ public class ITextTools {
 
       if (type.equals("TIF") || type.equals("TIFF")) {
         RandomAccessFileOrArray tif = new RandomAccessFileOrArray(
-            new RandomAccessSourceFactory().createSource(imageIn));
+          new RandomAccessSourceFactory().createSource(imageIn)
+        );
         int numberOfPages = TiffImage.getNumberOfPages(tif);
         for (int i = 1; i <= numberOfPages; i++) {
           Image image = TiffImage.getTiffImage(tif, i);
           // page size limit to 14400*14400
           image.scaleToFit(14400, 14400);
-          document.setPageSize(new Rectangle(image.getScaledWidth(), image.getScaledHeight()));
+          document.setPageSize(
+            new Rectangle(image.getScaledWidth(), image.getScaledHeight())
+          );
           document.newPage();
           document.add(image);
         }
@@ -269,7 +344,9 @@ public class ITextTools {
         Image image = Image.getInstance(imageIn);
         // page size limit to 14400*14400
         image.scaleToFit(14400, 14400);
-        document.setPageSize(new Rectangle(image.getWidth(), image.getHeight()));
+        document.setPageSize(
+          new Rectangle(image.getWidth(), image.getHeight())
+        );
         document.newPage();
         document.add(image);
       }
@@ -277,7 +354,7 @@ public class ITextTools {
       document.close();
       return true;
     } catch (Exception e) {
-      log.error(e.getLocalizedMessage());
+      log.error("{}", e);
       return false;
     }
   }

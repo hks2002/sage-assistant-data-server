@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2023-03-12 21:39:28                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-03 22:33:22                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2023-03-12 21:39:28                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:51:05                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
@@ -15,11 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class AttachmentMapperTest {
 
-    @Autowired
-    AttachmentMapper attachmentMapper;
+  @Autowired
+  AttachmentMapper attachmentMapper;
 
-    @Test
-    void testGetAttachment() {
-        attachmentMapper.getAttachment("956A1001G01");
-    }
+  @Test
+  void testGetAttachment() {
+    attachmentMapper.getAttachment("956A1001G01");
+  }
 }

@@ -8,25 +8,24 @@
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Date;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.sql.Date;
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class LinksReceiptLine {
-    private String ReceiptNO;
-    private String ReceiptLine;
-    private String ReceiptProjectNO;
-    private String ReceiptVendorCode;
-    private String ReceiptVendorName;
-    private Date ReceiptDate;
-    private String ReceiptPN;
-    private String ReceiptPNDescription;
-    private Float ReceiptQty;
-    private String ReceiptUnit;
-    private Double ReceiptAmount;
-    private String ReceiptCurrency;
+
+  private String ReceiptNO;
+  private String ReceiptLine;
+  private String ReceiptProjectNO;
+  private String ReceiptVendorCode;
+  private String ReceiptVendorName;
+  private Date ReceiptDate;
+  private String ReceiptPN;
+  private String ReceiptPNDescription;
+  private Float ReceiptQty;
+  private String ReceiptUnit;
+  private Double ReceiptAmount;
+  private String ReceiptCurrency;
 }

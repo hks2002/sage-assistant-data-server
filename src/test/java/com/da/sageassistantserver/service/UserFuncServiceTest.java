@@ -27,7 +27,8 @@ class UserFuncServiceTest {
     }
   }
 
-  @Autowired UserFuncService userFuncService;
+  @Autowired
+  UserFuncService userFuncService;
 
   @Test
   public void setLogTemplate() {

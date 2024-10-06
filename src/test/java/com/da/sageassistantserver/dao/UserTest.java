@@ -21,7 +21,9 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest
 public class UserTest {
-  @Autowired UserMapper userMapper;
+
+  @Autowired
+  UserMapper userMapper;
 
   @Test
   void testCreateUser() {

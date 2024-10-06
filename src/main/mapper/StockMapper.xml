@@ -2,21 +2,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.da.sageassistantserver.dao.StockMapper">
-	<!--Open L2 Cache under Names pace: 1 Hour-->
-	<cache eviction="LRU" flushInterval="3600000" readOnly="true" size="1024" />
-	<select id="checkPN" resultType="java.lang.String">
+  <!--Open L2 Cache under Names pace: 1 Hour-->
+  <cache eviction="LRU" flushInterval="3600000" readOnly="true" size="1024" />
+  <select id="checkPN" resultType="java.lang.String">
 		SELECT TOP 1
 			ITMMASTER.ITMREF_0
 		FROM
 			ITMMASTER
 		WHERE ITMMASTER.ITMREF_0=#{pnRoot}
-	</select>
-	<select id="findStockQty" resultType="java.lang.String">
+  </select>
+  <select id="findStockQty" resultType="java.lang.String">
 		SELECT 
 			SUM(STOCK.QTYSTU_0) AS QTY FROM STOCK WHERE STOCK.ITMREF_0=#{pnRoot}
 			AND STOCK.STOFCY_0=#{Site}
-	</select>
-	<select id="findStockOptionPN" resultType="java.lang.String">
+  </select>
+  <select id="findStockOptionPN" resultType="java.lang.String">
 		SELECT
 			STUFF((SELECT DISTINCT ';' + T0.OptionPN FROM (
 			SELECT 
@@ -46,40 +46,45 @@
 				REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(T2.ITMREFBPS_0,',',''),'.',''),'-',''),'_',''),'\',''),'/',''),' ','') != #{pnRoot}
 			) T0
 			FOR XML PATH('')),1,1,'') AS OptionPN
-	</select>
-	<select id="findStockInfoByPnRoot" resultType="com.da.sageassistantserver.model.StockInfo">
-		SELECT 
-			STOCK.STOFCY_0 AS StockSite,
-			STOCK.ITMREF_0 AS PN,
-			SUM(STOCK.QTYSTU_0) AS QTY,
-			'P' AS Type
-		FROM EXPLOIT.STOCK
-			LEFT JOIN EXPLOIT.ITMMASTER
-			ON ITMMASTER.ITMREF_0=STOCK.ITMREF_0
-		WHERE ITMMASTER.ITMREF_0=#{pnRoot}
-		GROUP BY STOCK.STOFCY_0,
-				STOCK.ITMREF_0
+  </select>
+  <select id="findStockInfoByPnRoot" resultType="com.da.sageassistantserver.model.StockInfo">
+    WITH T0 AS (
+    SELECT DISTINCT
+      MFGMAT.ITMREF_0
+    FROM EXPLOIT.SORDERQ AS SORDERQ
+    INNER JOIN EXPLOIT.MFGITM AS MFGITM
+        ON SORDERQ.SALFCY_0 = MFGITM.MFGFCY_0 
+              AND (MFGITM.PJT_0 = SORDERQ.YSOH_PJT_0 OR (MFGITM.PJT_0 = SORDERQ.YSOQ_PJTORI_0 AND MFGITM.PJT_0 !=''))
+    INNER JOIN EXPLOIT.MFGMAT AS MFGMAT
+        ON MFGITM.MFGNUM_0 = MFGMAT.MFGNUM_0
+          AND MFGITM.MFGLIN_0 = MFGMAT.MFGLIN_0
+            AND MFGMAT.ITMREF_0 LIKE 'PNOGSEM%'
+    WHERE 
+      SORDERQ.ITMREF_0 = #{pnRoot}
+    )
+            
+	SELECT 
+		STOCK.STOFCY_0 AS StockSite,
+		STOCK.ITMREF_0 AS PN,
+		SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0,STOCK.STOFCY_0) AS Qty,
+		'P' AS Type
+	FROM EXPLOIT.STOCK
+		LEFT JOIN EXPLOIT.ITMMASTER
+		ON ITMMASTER.ITMREF_0=STOCK.ITMREF_0
+	WHERE ITMMASTER.ITMREF_0 = #{pnRoot}
 
-		UNION
+	UNION
 
-		SELECT DISTINCT
-			STOCK.STOFCY_0 AS StockSite,
-			STOCK.ITMREF_0 AS PN,
-			SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0,STOCK.STOFCY_0) AS Qty,
-			'C' AS Type
-		FROM EXPLOIT.SORDERQ AS SORDERQ
-		INNER JOIN EXPLOIT.MFGITM AS MFGITM
-				ON MFGITM.PJT_0 = SORDERQ.YSOH_PJT_0 OR (MFGITM.PJT_0 = SORDERQ.YSOQ_PJTORI_0 AND MFGITM.PJT_0 !='')
-		INNER JOIN EXPLOIT.MFGMAT AS MFGMAT
-				ON MFGITM.MFGNUM_0 = MFGMAT.MFGNUM_0
-					AND MFGITM.MFGLIN_0 = MFGMAT.MFGLIN_0
-		INNER JOIN EXPLOIT.STOCK STOCK
-			ON MFGMAT.ITMREF_0 = STOCK.ITMREF_0
-				AND MFGMAT.ITMREF_0 LIKE 'PNOGSEM%'
-		WHERE 
-			SORDERQ.ITMREF_0 = #{pnRoot}
-	</select>
-	<select id="findStockSummaryBySite" resultType="com.da.sageassistantserver.model.StockSummary">
+    SELECT 
+      STOCK.STOFCY_0 AS StockSite,
+      STOCK.ITMREF_0 AS PN,
+      SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0,STOCK.STOFCY_0) AS Qty,
+      'C' AS Type
+    FROM EXPLOIT.STOCK STOCK
+    INNER JOIN T0
+        ON STOCK.ITMREF_0 = T0.ITMREF_0
+  </select>
+  <select id="findStockSummaryBySite" resultType="com.da.sageassistantserver.model.StockSummary">
 		SELECT T1.*,  CAST(T2.Cost/T2.Cnt * T1.Qty AS numeric(10,2)) AS Cost
 		FROM (
 			SELECT DISTINCT
@@ -132,9 +137,9 @@
 		) AS T2
 		ON T1.PN = T2.PN
 		ORDER BY PN
-	</select>
-	<!-- STOJOU.VCRTYPREG_0 0:无， 6: Receive 10: workorder 17: Supplier Invoice -->
-	<select id="findStockHistoryBySite" resultType="com.da.sageassistantserver.model.StockHistory">
+  </select>
+  <!-- STOJOU.VCRTYPREG_0 0:无， 6: Receive 10: workorder 17: Supplier Invoice -->
+  <select id="findStockHistoryBySite" resultType="com.da.sageassistantserver.model.StockHistory">
 		SELECT DISTINCT
 			STOJOU.LOC_0 AS Location,
 			STOJOU.CSTCOU_0 AS Seq,
@@ -155,7 +160,7 @@
 		LEFT JOIN ITMMASTER
 			ON ITMMASTER.ITMREF_0 = STOJOU.ITMREF_0 WHERE STOJOU.STOFCY_0=#{Site}
 			AND (STOJOU.CREDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-		<if test=" PnOrName != '%%' ">
+    <if test=" PnOrName != '%%' ">
 			AND
 			(
 			ITMMASTER.ITMDES1_0 LIKE #{PnOrName} OR
@@ -163,10 +168,10 @@
 			ITMMASTER.ITMDES2_0 LIKE #{PnOrName} OR
 			STOJOU.ITMREF_0 LIKE #{PnOrName}
 			)
-		</if>
+    </if>
 		AND STOJOU.VCRTYPREG_0 != 17
 		ORDER BY STOJOU.CREDAT_0 DESC,
 		         STOJOU.CSTCOU_0 DESC
-	</select>
+  </select>
 
 </mapper>

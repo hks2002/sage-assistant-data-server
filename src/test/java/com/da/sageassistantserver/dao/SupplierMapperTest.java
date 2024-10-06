@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2023-03-12 19:32:19                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-03 22:35:19                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2023-03-12 19:32:19                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-25 14:52:06                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
@@ -15,76 +15,470 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class SupplierMapperTest {
 
-    @Autowired
-    SupplierMapper supplierMapper;
+  @Autowired
+  SupplierMapper supplierMapper;
 
-    @Test
-    void testFindPurchaseDate() {
-        supplierMapper.findPurchaseDate("ZCF2301001");
-    }
+  @Test
+  void testFindSupplierByCodeOrName() {
+    supplierMapper.findSupplierByCodeOrName("00870", 5);
+  }
 
-    @Test
-    void testFindSupplierByCodeOrName() {
-        supplierMapper.findSupplierByCodeOrName("00870", 5);
-    }
+  @Test
+  void testFindSupplierDetailsByCode() {
+    supplierMapper.findSupplierDetailsByCode("00870");
+  }
 
-    @Test
-    void testFindSupplierDelayHistory() {
-        supplierMapper.findSupplierDelayHistory("00870", "2020-01-01", "2020-12-31");
-    }
+  @Test
+  void testFindSupplierSumAmount() {
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierSumAmount(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+  }
 
-    @Test
-    void testFindSupplierDeliveryHistory() {
-        supplierMapper.findSupplierDeliveryHistory("00870", "2020-01-01", "2020-12-31");
-    }
+  @Test
+  void testFindSupplierOTD() {
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierOTD(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierOTD(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierOTD(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+  }
 
-    @Test
-    void testFindSupplierDetailsByCode() {
-        supplierMapper.findSupplierDetailsByCode("00870");
-    }
+  @Test
+  void testFindSupplierQPY() {
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierQPY(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierQPY(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierQPY(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+  }
 
-    @Test
-    void testFindSupplierOpenAmount() {
-        supplierMapper.findSupplierOpenAmount("00870");
-    }
+  @Test
+  void testFindSupplierNCSummary() {
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Month"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "ALL",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "MAIN",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "OTHERS",
+      "ALL",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ZHU",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+    supplierMapper.findSupplierNCSummary(
+      "ALL",
+      "",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "Year"
+    );
+  }
 
-    @Test
-    void testFindSupplierOpenItemQty() {
-        supplierMapper.findSupplierOpenItemQty("00870");
-    }
+  @Test
+  void testFindSupplierNCHistoryCnt() {
+    supplierMapper.findSupplierNCHistoryCnt(
+      "ZHU",
+      "ALL",
+      "00870",
+      "2024-01-01",
+      "2024-12-31"
+    );
+    supplierMapper.findSupplierNCHistoryCnt(
+      "ZHU",
+      "ALL",
+      "",
+      "2024-01-01",
+      "2024-12-31"
+    );
+    supplierMapper.findSupplierNCHistoryCnt(
+      "ALL",
+      "ALL",
+      "",
+      "2024-01-01",
+      "2024-12-31"
+    );
+  }
 
-    @Test
-    void testFindSupplierOpenItems() {
-        supplierMapper.findSupplierOpenItems("00870");
-    }
+  @Test
+  void testFindSupplierNCHistory() {
+    supplierMapper.findSupplierNCHistory(
+      "ZHU",
+      "ALL",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      0,
+      100
+    );
+    supplierMapper.findSupplierNCHistory(
+      "ZHU",
+      "ALL",
+      "",
+      "2024-01-01",
+      "2024-12-31",
+      0,
+      100
+    );
+    supplierMapper.findSupplierNCHistory(
+      "ALL",
+      "ALL",
+      "",
+      "2024-01-01",
+      "2024-12-31",
+      0,
+      100
+    );
+  }
 
-    @Test
-    void testFindSupplierOpenProductQty() {
-        supplierMapper.findSupplierOpenProductQty("00870");
-    }
+  @Test
+  void testFindSupplierOrdersCnt() {
+    supplierMapper.findSupplierOrdersCnt(
+      "ZHU",
+      "ALL",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "OPEN"
+    );
+    supplierMapper.findSupplierOrdersCnt(
+      "ZHU",
+      "MAIN",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "OPEN"
+    );
+    supplierMapper.findSupplierOrdersCnt(
+      "ZHU",
+      "OTHERS",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "OPEN"
+    );
+  }
 
-    @Test
-    void testFindSupplierOpenProjectQty() {
-        supplierMapper.findSupplierOpenProjectQty("00870");
-    }
-
-    @Test
-    void testFindSupplierTotalAmount() {
-        supplierMapper.findSupplierTotalAmount("00870", "2020-01-01", "2020-12-31");
-    }
-
-    @Test
-    void testFindSupplierTotalItemQty() {
-        supplierMapper.findSupplierTotalItemQty("00870", "2020-01-01", "2020-12-31");
-    }
-
-    @Test
-    void testFindSupplierTotalProductQty() {
-        supplierMapper.findSupplierTotalProductQty("00870", "2020-01-01", "2020-12-31");
-    }
-
-    @Test
-    void testFindSupplierTotalProjectQty() {
-        supplierMapper.findSupplierTotalProjectQty("00870", "2020-01-01", "2020-12-31");
-    }
+  @Test
+  void testFindSupplierOrders() {
+    supplierMapper.findSupplierOrders(
+      "ZHU",
+      "ALL",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "OPEN",
+      0,
+      100
+    );
+    supplierMapper.findSupplierOrders(
+      "ZHU",
+      "MAIN",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "OPEN",
+      0,
+      100
+    );
+    supplierMapper.findSupplierOrders(
+      "ZHU",
+      "OTHERS",
+      "00870",
+      "2024-01-01",
+      "2024-12-31",
+      "OPEN",
+      0,
+      100
+    );
+  }
 }

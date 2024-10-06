@@ -1,41 +1,48 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2024-06-16 23:24:10                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-01 00:09:49                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/*********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                            *
+ * @CreatedDate           : 2024-06-16 23:24:10                                                                      *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
+ * @LastEditDate          : 2024-12-25 14:49:57                                                                      *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
+ ********************************************************************************************************************/
 
 package com.da.sageassistantserver.webdav;
 
-import java.io.IOException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
+import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RequestWrapper extends HttpServletRequestWrapper {
+
   public RequestWrapper(HttpServletRequest request) throws IOException {
     super(request);
   }
 
   @Override
   public String getHeader(String name) {
-    String superHeader = super.getHeader(name);
-    // Browsers use If-None-Match send the ETag value back to Server, here change it
-    // to
-    // W/\"1000000-1000000000000\"
-    // So that the Server don't return 304,
-    if ("If-None-Match".equals(name)) {
-      return "W/\"1000000-1000000000000\"";
+    String webdavCache = (String) super
+      .getSession()
+      .getAttribute("webdavCache");
+    if (webdavCache.toLowerCase().equals("true")) {
+      return super.getHeader(name);
+    } else {
+      String nameLowerCase = name.toLowerCase();
+      if (
+        // Browsers use [If-None-Match]+[ETag] and [if-modified-since]+[last-modified] value back to Server,
+        // If-None-Match: W/1000000-1000000000000
+        // if-modified-since: Mon, 01 Jan 1990 00:00:00 GMT
+        // then server will return 304 or 200
+        nameLowerCase.equals("if-none-match") ||
+        nameLowerCase.equals("etag") ||
+        nameLowerCase.equals("if-modified-since") ||
+        nameLowerCase.equals("last-modified")
+      ) {
+        return null;
+      } else {
+        return super.getHeader(name);
+      }
     }
-
-    // use-agent: Microsoft-WebDAV-MiniRedir doesn't sent the ETag back to Server
-    // it send "if-modified-since" instead,
-    // Refresh the page to will get a content after keep-alive timeout
-    if ("if-modified-since".equals(name)) {
-      return "Mon, 01 Jan 1990 00:00:00 GMT";
-    }
-    return superHeader;
   }
-
 }

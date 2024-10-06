@@ -1,8 +1,8 @@
 {
     "recommendations": [
-        "mwpb.java-prettier-formatter",
         "merbleueaviation.auto-header-plus",
         "streetsidesoftware.code-spell-checker",
-        "merbleueaviation.emoji-commit-tiny"
+        "merbleueaviation.emoji-commit-tiny",
+        "hyperproof.vscode-ext-prettier-java"
     ]
 }

@@ -15,31 +15,31 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class InvoiceMapperTest {
 
-    @Autowired
-    private InvoiceMapper invoiceMapper;
+  @Autowired
+  private InvoiceMapper invoiceMapper;
 
-    @Test
-    void testFindInvoiceBodyByFaPiao() {
-        invoiceMapper.findInvoiceBodyByFaPiao("0000000000");
-    }
+  @Test
+  void testFindInvoiceBodyByFaPiao() {
+    invoiceMapper.findInvoiceBodyByFaPiao("0000000000");
+  }
 
-    @Test
-    void testFindInvoiceBodyByInvoiceNO() {
-        invoiceMapper.findInvoiceBodyByInvoiceNO("ZFC1901001");
-    }
+  @Test
+  void testFindInvoiceBodyByInvoiceNO() {
+    invoiceMapper.findInvoiceBodyByInvoiceNO("ZFC1901001");
+  }
 
-    @Test
-    void testFindInvoiceHeaderByFaPiao() {
-        invoiceMapper.findInvoiceHeaderByFaPiao("0000000000");
-    }
+  @Test
+  void testFindInvoiceHeaderByFaPiao() {
+    invoiceMapper.findInvoiceHeaderByFaPiao("0000000000");
+  }
 
-    @Test
-    void testFindInvoiceHeaderByInvoiceNO() {
-        invoiceMapper.findInvoiceHeaderByInvoiceNO("ZFC1901001");
-    }
+  @Test
+  void testFindInvoiceHeaderByInvoiceNO() {
+    invoiceMapper.findInvoiceHeaderByInvoiceNO("ZFC1901001");
+  }
 
-    @Test
-    void testFindInvoiceNOByInvoiceNO() {
-        invoiceMapper.findInvoiceNOByInvoiceNO("ZFC1901001", 5);
-    }
+  @Test
+  void testFindInvoiceNOByInvoiceNO() {
+    invoiceMapper.findInvoiceNOByInvoiceNO("ZFC1901001", 5);
+  }
 }

@@ -8,13 +8,11 @@
 
 package com.da.sageassistantserver.dao;
 
-import org.apache.ibatis.annotations.Mapper;
-
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.da.sageassistantserver.model.Log;
+import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 @DS("slave")
-public interface LogMapper extends BaseMapper<Log> {
-}
+public interface LogMapper extends BaseMapper<Log> {}

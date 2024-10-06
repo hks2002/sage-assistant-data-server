@@ -2,8 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 21:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-04-08 21:47:01                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/controller/DashboardController.java                  *
+ * @LastEditDate          : 2024-12-09 19:13:15                                                                      *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 

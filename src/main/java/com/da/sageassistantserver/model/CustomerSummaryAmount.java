@@ -9,18 +9,18 @@
 
 package com.da.sageassistantserver.model;
 
+import com.alibaba.fastjson2.annotation.JSONType;
 import java.math.BigDecimal;
-
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class CustomerSummaryAmount {
 
-    private String Site;
-    private String CustomerCode;
-    private String Currency;
-    private BigDecimal Amount;
-    private Float Rate;
-    private BigDecimal USD;
+  private String Site;
+  private String CustomerCode;
+  private String Currency;
+  private BigDecimal Amount;
+  private Float Rate;
+  private BigDecimal USD;
 }

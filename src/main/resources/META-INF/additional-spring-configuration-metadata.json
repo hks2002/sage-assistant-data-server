@@ -54,6 +54,16 @@
       "name": "attachment.info.build.repeat",
       "type": "java.lang.Integer",
       "description": "A description for 'attachment.info.build.repeat'"
+    },
+    {
+      "name": "spring.resources.cache-period",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.resources.cache-period'"
+    },
+    {
+      "name": "webdav.cache",
+      "type": "java.lang.String",
+      "description": "A description for 'webdav.cache'"
     }
   ]
 }
